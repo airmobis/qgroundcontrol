@@ -20,9 +20,10 @@ public:
     bool isHerelink (void) const { return true; }
 
     // Overrides from QGCCorePlugin
-    QGCOptions* options                         (void) override { return qobject_cast<QGCOptions*>(_herelinkOptions); }
-    bool        overrideSettingsGroupVisibility (QString name) override;
-    bool        adjustSettingMetaData           (const QString& settingsGroup, FactMetaData& metaData) override;
+    QGCOptions* options                                (void) override { return qobject_cast<QGCOptions*>(_herelinkOptions); }
+    bool        overrideSettingsGroupVisibility        (QString name) override;
+    bool        adjustSettingMetaData                  (const QString& settingsGroup, FactMetaData& metaData) override;
+    void        factValueGridCreateDefaultSettings     (const QString& defaultSettingsGroup) override;
 
     // Overrides from QGCTool
     void setToolbox(QGCToolbox* toolbox) override;
