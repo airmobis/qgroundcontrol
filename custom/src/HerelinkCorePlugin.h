@@ -16,6 +16,9 @@ class HerelinkCorePlugin : public QGCCorePlugin
 public:
     HerelinkCorePlugin(QGCApplication* app, QGCToolbox* toolbox);
 
+    Q_PROPERTY(bool isHerelink READ isHerelink CONSTANT)
+    bool isHerelink (void) const { return true; }
+
     // Overrides from QGCCorePlugin
     QGCOptions* options                         (void) override { return qobject_cast<QGCOptions*>(_herelinkOptions); }
     bool        overrideSettingsGroupVisibility (QString name) override;
