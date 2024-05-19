@@ -77,4 +77,11 @@ HEADERS += \
 INCLUDEPATH += \
     $$PWD/src \
 
+# Herelink specific custom sources, for HDMI switching
+message("Including custom Herelink sources for source switching")
+
+SOURCES += $$PWD/herelink/VideoStreamControl.cc
+HEADERS += $$PWD/herelink/VideoStreamControl.h
+INCLUDEPATH += $$PWD/herelink
+
 # Custom versions of a Herelink build should only add changes below here to prevent conflicts
