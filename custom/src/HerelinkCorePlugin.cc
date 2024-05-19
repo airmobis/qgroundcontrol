@@ -36,6 +36,23 @@ bool HerelinkCorePlugin::overrideSettingsGroupVisibility(QString name)
 
 bool HerelinkCorePlugin::adjustSettingMetaData(const QString& settingsGroup, FactMetaData& metaData)
 {
+    if (settingsGroup == AppSettings::settingsGroup) {
+        //-- Default herelink fontsize of 10, it is a nice starting point
+        if (metaData.name() == AppSettings::appFontPointSizeName) {
+            uint32_t fontSize = 10;
+            metaData.setRawDefaultValue(fontSize);
+            // Show setting in ui
+            return true;
+        }
+        //-- Default Palette Dark
+        if (metaData.name() == AppSettings::indoorPaletteName) {
+            QVariant outdoorPalette;
+            outdoorPalette = 1;
+            metaData.setRawDefaultValue(outdoorPalette);
+            // Show setting in ui
+            return true;
+        }
+    }
     if (settingsGroup == AutoConnectSettings::settingsGroup) {
         // We have to adjust the Herelink UDP autoconnect settings for the AirLink
         if (metaData.name() == AutoConnectSettings::udpListenPortName) {
