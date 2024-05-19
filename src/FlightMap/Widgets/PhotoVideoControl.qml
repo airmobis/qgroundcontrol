@@ -74,7 +74,7 @@ Rectangle {
                 onValueChanged:     _camera.zoomLevel = value
             }
         }
-        
+
         ColumnLayout {
             spacing: _margins * 2
 
@@ -87,6 +87,34 @@ Rectangle {
                     text:               _camera.modelName
                     visible:            _cameraManager.cameras.length > 1
                 }
+
+                GridLayout {
+                    Layout.margins: ScreenTools.defaultFontPixelWidth
+                    columns:        3
+                    visible:        QGroundControl.corePlugin.isHerelink
+
+                    QGCLabel {
+                        text:               qsTr("video source used: HDMI ") + (_videoStreamSettings.cameraId.rawValue + 1)
+                        Layout.columnSpan:  3
+                    }
+                    QGCLabel {
+                        text:               qsTr("Select: ")
+                    }
+                    QGCButton {
+                        text:               qsTr("HDMI 1")
+                        enabled:            !QGroundControl.videoManager.videoStreamControl.settingInProgress
+                        onClicked:          _videoStreamSettings.cameraId.rawValue = 0
+                    }
+                    QGCButton {
+                        text:               qsTr("HDMI 2")
+                        enabled:            !QGroundControl.videoManager.videoStreamControl.settingInProgress
+                        onClicked:          _videoStreamSettings.cameraId.rawValue = 1
+                    }
+                }
+                GridLayout {
+                    id:     gridLayout
+                    flow:   GridLayout.TopToBottom
+                    rows:   dynamicRows + (_mavlinkCamera ? _mavlinkCamera.activeSettings.length : 0)
 
                 // Photo/Video Mode Selector
                 Rectangle {
@@ -124,7 +152,7 @@ Rectangle {
                             }
                         }
                     }
-                    
+
                     //-- Photo Mode
                     Rectangle {
                         anchors.verticalCenter: parent.verticalCenter
@@ -182,7 +210,7 @@ Rectangle {
                         property bool _isShootingInVideoMode:   (!_cameraInPhotoMode && _camera.videoCaptureStatus === MavlinkCameraControl.VIDEO_CAPTURE_STATUS_RUNNING)
                         property bool _isShootingInCurrentMode: _cameraInPhotoMode ? _isShootingInPhotoMode : _isShootingInVideoMode
                         property bool _isShootingInOtherMode:   _cameraInPhotoMode ? _isShootingInVideoMode : _isShootingInPhotoMode
-                        property bool _canShootInCurrentMode:   _isShootingInOtherMode ? 
+                        property bool _canShootInCurrentMode:   _isShootingInOtherMode ?
                                                                     (_cameraInPhotoMode ? _camera.photosInVideoMode : _camera.videoInPhotoMode) :
                                                                     true
                     }
@@ -271,7 +299,7 @@ Rectangle {
                     Layout.preferredHeight: Layout.preferredWidth
                     border.color:           qgcPal.buttonText
                     border.width:           3
-                    
+
                     QGCColoredImage {
                         height:             parent.height * 0.5
                         width:              height
