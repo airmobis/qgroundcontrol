@@ -114,7 +114,7 @@ Item {
         property var trackingStatus: trackingStatusComponent.createObject(flyViewVideoMouseArea, {})
 
         onClicked:       onScreenGimbalController.clickControl()
-        onDoubleClicked: QGroundControl.videoManager.fullScreen = !QGroundControl.videoManager.fullScreen
+        // onDoubleClicked: QGroundControl.videoManager.fullScreen = !QGroundControl.videoManager.fullScreen
 
         onPressed:(mouse) => {
             onScreenGimbalController.pressControl()
