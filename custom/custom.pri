@@ -3,8 +3,9 @@ message("Adding Custom Herelink Plugin")
 #-- Version control
 #   Major and minor versions are defined here (manually)
 
-CUSTOM_QGC_VER_MAJOR = 0
-CUSTOM_QGC_VER_MINOR = 0
+CUSTOM_QGC_VER_MAJOR = 4
+CUSTOM_QGC_VER_MINOR = 4
+CUSTOM_QGC_VER_PATCH = 0
 CUSTOM_QGC_VER_FIRST_BUILD = 0
 
 linux {
@@ -19,7 +20,7 @@ win32 {
 } else {
     CUSTOM_QGC_VER_BUILD = $$system("echo $(($$CUSTOM_QGC_VER_BUILD - $$CUSTOM_QGC_VER_FIRST_BUILD))")
 }
-CUSTOM_QGC_VERSION = $${CUSTOM_QGC_VER_MAJOR}.$${CUSTOM_QGC_VER_MINOR}.$${CUSTOM_QGC_VER_BUILD}
+CUSTOM_QGC_VERSION = $${CUSTOM_QGC_VER_MAJOR}.$${CUSTOM_QGC_VER_MINOR}.$${CUSTOM_QGC_VER_PATCH}.$${CUSTOM_QGC_VER_BUILD}
 
 DEFINES -= APP_VERSION_STR=\"\\\"$$APP_VERSION_STR\\\"\"
 DEFINES += APP_VERSION_STR=\"\\\"$$CUSTOM_QGC_VERSION\\\"\"
@@ -43,7 +44,7 @@ QGC_ORG_NAME        = "Cubepilot"
 QGC_ORG_DOMAIN      = "org.cubepilot"
 QGC_ANDROID_PACKAGE = "org.cubepilot.herelink_qgroundcontrol"
 QGC_APP_DESCRIPTION = "Herelink QGroundControl"
-QGC_APP_COPYRIGHT   = "Copyright (C) 2023 Cubepilot. All rights reserved."
+QGC_APP_COPYRIGHT   = "Copyright (C) 2024 Cubepilot. All rights reserved."
 
 # Remove code which the Herelink doesn't need
 DEFINES += \
