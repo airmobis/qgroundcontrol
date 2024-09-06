@@ -5,7 +5,7 @@ message("Adding Custom Herelink Plugin")
 
 CUSTOM_QGC_VER_MAJOR = 4
 CUSTOM_QGC_VER_MINOR = 4
-CUSTOM_QGC_VER_PATCH = 0
+CUSTOM_QGC_VER_PATCH = 2
 CUSTOM_QGC_VER_FIRST_BUILD = 0
 
 linux {
