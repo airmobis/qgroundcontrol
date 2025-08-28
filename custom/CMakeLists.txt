@@ -1,3 +1,7 @@
+cmake_minimum_required(VERSION 3.10)
+
+project(AirmobisCustomPlugin VERSION 1.0 LANGUAGES CXX)
+
 message(STATUS "QGC: Adding Custom Plugin")
 
 # Enable custom build
@@ -36,9 +40,21 @@ endif()
 list(APPEND CUSTOM_RESOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom.qrc
 )
-set(QGC_RESOURCES ${QGC_RESOURCES} ${CUSTOM_RESOURCES} CACHE STRING "Paths to .qrc Resources" FORCE)
 
-set(QML_IMPORT_PATH ${QML_IMPORT_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/res" CACHE STRING "Extra qml import paths" FORCE)
+set(
+    QGC_RESOURCES ${QGC_RESOURCES} ${CUSTOM_RESOURCES}
+    CACHE STRING "Paths to .qrc Resources" FORCE
+)
+
+set(
+    QML_IMPORT_PATH ${QML_IMPORT_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/res"
+    CACHE STRING "Extra qml import paths" FORCE
+)
+
+# These two calls are necessary to make the directory
+# configurable by itself.
+find_package(Qt6 REQUIRED COMPONENTS Core QML)
+set(CMAKE_AUTOMOC ON)
 
 qt_add_library(CustomModule STATIC)
 
@@ -79,8 +95,10 @@ set(CUSTOM_SOURCES
     CACHE INTERNAL "" FORCE
 )
 
+# Explicitly link QML module, needed by Qt 6.6.3
+# TODO: Remove when support for this version is dropped
 set(CUSTOM_LIBRARIES
-    CustomModule # Explicitly link QML module, needed by Qt 6.6.3, TODO: Remove when support for this version is dropped
+    CustomModule
     CACHE INTERNAL "" FORCE
 )
 
