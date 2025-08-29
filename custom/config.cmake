@@ -47,9 +47,6 @@ set(
     CACHE STRING "Extra qml import paths" FORCE
 )
 
-find_package(Qt6 REQUIRED COMPONENTS Core Qml)
-set(CMAKE_AUTOMOC ON)
-
 qt_add_library(CustomModule STATIC)
 
 target_link_libraries(CustomModule PUBLIC Qt6::Core)
@@ -84,7 +81,6 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/CustomPlugin.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork_qmlinit.cc
-    ${CMAKE_CURRENT_LIST_DIR}/src/HerelinkCorePlugin.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/HerelinkOptions.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/VideoStreamControl.cc
     CACHE INTERNAL "" FORCE

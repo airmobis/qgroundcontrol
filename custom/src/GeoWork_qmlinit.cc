@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QtQml>
 
+// TODO Is this really necessary?
 static void initGeoWorkQml() {
     // Make the module exist for the import resolver
     qmlRegisterModule("GeoWork", 1, 0);

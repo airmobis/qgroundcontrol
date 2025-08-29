@@ -3,7 +3,10 @@
 #include "SettingsManager.h"
 #include "VideoSettings.h"
 
+#include "QGCLoggingCategory.h"
 #include <QDebug>
+
+QGC_LOGGING_CATEGORY(VideoStreamControlLog, "VideoStreamControlLog")
 
 VideoStreamControl::VideoStreamControl()
     : m_systemId { -1 }
@@ -126,4 +129,11 @@ void VideoStreamControl::setSettingInProgress(bool inProgress) {
     m_settingInProgress = inProgress;
 
     emit settingInProgressChanged();
+}
+
+// No-ops, added to fix undefined symbols.
+void VideoStreamControl::settingInProgressChanged() {
+}
+
+void VideoStreamControl::videoNeedsReset() {
 }
