@@ -18,6 +18,11 @@ _This file serves to document my experience working with and modifying QGroundCo
 - Installing Qt 6.8.3 and Qt Creator via the official "online installer" unlocked Android kits to compile with.
     - Configuring via Qt Creator failed, since Ninja wasn't found in the sysroot. Easy enough to solve with a symlink.
     - I'm currently stuck on glib2 not being found. Probably due to some sysroot tomfoolery.
+    - ...and I didn't manage to get past it. Guess I'll stick to using macOS for coding and leave the Android compilation part for Linux.
+
+## clangd integration
+- As mentioned above, the `custom` directory _seems_ like its own module, but it's really dependent on QGC's APIs, which confuses clangd. To ease the pain, I decided to replace the `CMakeLists.txt` with a `config.cmake` file, which essentially runs the same logic, but ensures language server integration with the entire project.
+    - A modification in the top-level `CMakeLists.txt` was required--I replaced `add_subdirectory(custom)` with `include(custom/config.cmake)` on line 261.
 
 ## TODO
 - Test the (non-custom) build on a work PC.

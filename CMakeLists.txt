@@ -160,8 +160,8 @@ endif()
 #               Qt6 Configuration
 #######################################################
 
-# The values specified below are the ONLY supported configurations for this version of QGC. 
-# Change these to something else at your own risk. Anything other than what is specified 
+# The values specified below are the ONLY supported configurations for this version of QGC.
+# Change these to something else at your own risk. Anything other than what is specified
 # here is unsupported so don't expect any help with problems.
 
 if(QGC_ENABLE_HERELINK AND ANDROID)
@@ -258,7 +258,7 @@ endif()
 #######################################################
 
 if(QGC_CUSTOM_BUILD)
-    add_subdirectory(custom)
+    include(custom/config.cmake)
 endif()
 
 #######################################################
