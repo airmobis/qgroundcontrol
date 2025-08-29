@@ -1,7 +1,3 @@
-cmake_minimum_required(VERSION 3.10)
-
-project(AirmobisCustomPlugin VERSION 1.0 LANGUAGES CXX)
-
 message(STATUS "QGC: Adding Custom Plugin")
 
 # Enable custom build
@@ -87,6 +83,10 @@ qt_add_qml_module(CustomModule
 set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/CustomPlugin.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork.cc
+    ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork_qmlinit.cc
+    ${CMAKE_CURRENT_LIST_DIR}/src/HerelinkCorePlugin.cc
+    ${CMAKE_CURRENT_LIST_DIR}/src/HerelinkOptions.cc
+    ${CMAKE_CURRENT_LIST_DIR}/src/VideoStreamControl.cc
     CACHE INTERNAL "" FORCE
 )
 
