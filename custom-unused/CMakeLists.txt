@@ -51,11 +51,6 @@ set(
     CACHE STRING "Extra qml import paths" FORCE
 )
 
-# These two calls are necessary to make the directory
-# configurable by itself.
-find_package(Qt6 REQUIRED COMPONENTS Core QML)
-set(CMAKE_AUTOMOC ON)
-
 qt_add_library(CustomModule STATIC)
 
 set_source_files_properties(res/Custom/Widgets/CustomArtificialHorizon.qml PROPERTIES QT_RESOURCE_ALIAS CustomArtificialHorizon.qml)
