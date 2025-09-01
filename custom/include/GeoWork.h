@@ -22,11 +22,12 @@ class GeoWork : public QObject {
     Q_PROPERTY(TokenStatus tokenStatus READ tokenStatus NOTIFY tokenStatusChanged)
 
 public:
-    enum class TokenStatus : std::uint8_t {
+    enum TokenStatus : std::uint8_t {
         None,
         Valid,
         Invalid
     };
+    Q_ENUM(TokenStatus);
 
     explicit GeoWork(QObject* parent = nullptr);
 
