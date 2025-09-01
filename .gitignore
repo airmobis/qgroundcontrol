@@ -95,3 +95,4 @@ docs/.vitepress/dist/
 CMakeUserPresets.json
 cpm_modules
 gstreamer-1.0-android-universal-1.18.6/
+cmake/find-modules/FindGStreamer.cmake

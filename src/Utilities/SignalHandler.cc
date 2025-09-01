@@ -50,7 +50,7 @@ void SignalHandler::_onSigInt()
 {
     _notifierInt->setEnabled(false);
     char b;
-    ::read(sigIntFd[1], &b, sizeof(b));
+    auto _ = ::read(sigIntFd[1], &b, sizeof(b));
     qCDebug(SignalHandlerLog) << "Caught SIGINT—shutting down gracefully";
 
     if (qgcApp() && qgcApp()->mainRootWindow()) {
@@ -66,7 +66,7 @@ void SignalHandler::_onSigTerm()
 {
     _notifierTerm->setEnabled(false);
     char b;
-    ::read(sigTermFd[1], &b, sizeof(b));
+    auto _ = ::read(sigTermFd[1], &b, sizeof(b));
 
     qCDebug(SignalHandlerLog) << "Caught SIGTERM—shutting down gracefully";
     if (qgcApp() && qgcApp()->mainRootWindow()) {
@@ -83,7 +83,7 @@ void SignalHandler::intSignalHandler(int signum)
     Q_ASSERT(signum == SIGINT);
 
     char b = 1;
-    (void) ::write(sigIntFd[0], &b, sizeof(b));
+    auto _ = ::write(sigIntFd[0], &b, sizeof(b));
 }
 
 void SignalHandler::termSignalHandler(int signum)
@@ -91,7 +91,7 @@ void SignalHandler::termSignalHandler(int signum)
     Q_ASSERT(signum == SIGTERM);
 
     char b = 1;
-    (void) ::write(sigTermFd[0], &b, sizeof(b));
+    auto _ = ::write(sigTermFd[0], &b, sizeof(b));
 }
 
 int SignalHandler::setupSignalHandlers()
