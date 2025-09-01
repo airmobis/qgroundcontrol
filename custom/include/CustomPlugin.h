@@ -6,28 +6,24 @@
 #include <QGCCorePlugin.h>
 #include <QGCLoggingCategory.h>
 
-#include <QObject>
-
 Q_DECLARE_LOGGING_CATEGORY(HerelinkCorePluginLog)
 
-class CustomPlugin : public QGCCorePlugin {
+class CustomPlugin final : public QGCCorePlugin {
     Q_OBJECT
 
     Q_PROPERTY(bool isHerelink READ isHerelink CONSTANT)
 
 public:
     explicit CustomPlugin(QObject* parent = nullptr);
+    virtual ~CustomPlugin() = default;
 
     static QGCCorePlugin* instance();
     QGCOptions*           options() final;
 
-    constexpr bool isHerelink(void) const {
-        return true;
-    }
+    constexpr bool isHerelink(void) const { return true; }
 
-    bool overrideSettingsGroupVisibility(QString name);
-    bool adjustSettingMetaData(const QString& settingsGroup, FactMetaData& metaData) override;
-    void factValueGridCreateDefaultSettings();
+    bool overrideSettingsGroupVisibility(const QString& name) final;
+    bool adjustSettingMetaData(const QString& settingsGroup, FactMetaData& metaData) final;
 
 private slots:
     void activeVehicleChanged(Vehicle* activeVehicle);
