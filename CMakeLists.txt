@@ -63,12 +63,11 @@ include(GNUInstallDirs)
 include(FetchContent)
 include(CMakePrintHelpers)
 
-if(EXISTS "${QGC_CPM_SOURCE_CACHE}")
-    set(ENV{CPM_SOURCE_CACHE} "${QGC_CPM_SOURCE_CACHE}")
-else()
-    set(ENV{CPM_SOURCE_CACHE} "${CMAKE_BINARY_DIR}/cpm_modules")
-endif()
 include(CPM)
+
+if(NOT CPM_SOURCE_CACHE)
+    set(CPM_SOURCE_CACHE "${CMAKE_BINARY_DIR}/cpm_modules")
+endif()
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
