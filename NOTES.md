@@ -35,3 +35,10 @@ _This file serves to document my experience working with and modifying QGroundCo
 
 [^1]: Fixed in commit 139d4109d740aa7eb96b23e68ec3738f59a7d97f.
 [^2]: Fixed in commit aba10c93ee2056866fc87b7f1afe09a38d401616.
+
+## Changes from upstream (excl. custom directory)
+- Added Android GStreamer directory to `.gitignore`
+- Added `NOTES.md` (this file)
+- Modified `README.md`
+- Modified `find_package()` logic for GStreamer in `src/VideoManager/VideoReceiver/GStreamer/gstqml6gl/CMakeLists.txt`
+- Removed `cmake/modules/FindGStreamer.cmake`
