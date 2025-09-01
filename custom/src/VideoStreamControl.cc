@@ -130,10 +130,3 @@ void VideoStreamControl::setSettingInProgress(bool inProgress) {
 
     emit settingInProgressChanged();
 }
-
-// No-ops, added to fix undefined symbols.
-void VideoStreamControl::settingInProgressChanged() {
-}
-
-void VideoStreamControl::videoNeedsReset() {
-}

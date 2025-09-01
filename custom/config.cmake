@@ -78,11 +78,18 @@ qt_add_qml_module(CustomModule
 )
 
 set(CUSTOM_SOURCES
+    ${CMAKE_CURRENT_LIST_DIR}/include/CustomPlugin.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/HerelinkOptions.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/GeoWork.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/VideoStreamControl.h
+
     ${CMAKE_CURRENT_LIST_DIR}/src/CustomPlugin.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork.cc
-    ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork_qmlinit.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/HerelinkOptions.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/VideoStreamControl.cc
+
+    ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork_qmlinit.cc
+
     CACHE INTERNAL "" FORCE
 )
 

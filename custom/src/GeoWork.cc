@@ -33,12 +33,19 @@
 #include "QGCApplication.h"
 #include "Vehicle.h"
 
-// REST endpoints.
-constexpr std::string_view
-    kUrlSession { "https://api.geowork.mobis1.com/vehicles-reporting/session" },
-    kUrlState { "https://api.geowork.mobis1.com/vehicles-reporting/project-marker-state" },
-    kUrlMarker { "https://api.geowork.mobis1.com/vehicles-reporting/markers/create" },
-    kUrlReportLocation { "https://api.geowork.mobis1.com/vehicles-reporting/report-location" };
+namespace {
+    // REST endpoints.
+    constexpr std::string_view
+        kUrlSession { "https://api.geowork.mobis1.com/vehicles-reporting/session" },
+        kUrlState { "https://api.geowork.mobis1.com/vehicles-reporting/project-marker-state" },
+        kUrlMarker { "https://api.geowork.mobis1.com/vehicles-reporting/markers/create" },
+        kUrlReportLocation { "https://api.geowork.mobis1.com/vehicles-reporting/report-location" };
+
+    template <typename E>
+    std::underlying_type_t<E> to_underlying(E e) {
+        return static_cast<std::underlying_type_t<E>>(e);
+    }
+}
 
 // ---------------------------------------------------------
 
@@ -49,6 +56,13 @@ GeoWork::GeoWork(QObject* parent)
     , _settings { "Airmobis", "QGroundControl" } {
     loadSettings();
 }
+
+// Getters
+QString              GeoWork::projectId() const { return _projectId; }
+QString              GeoWork::stateId() const { return _stateId; }
+QString              GeoWork::deviceName() const { return _deviceName; }
+QString              GeoWork::bearerToken() const { return _bearerToken; }
+GeoWork::TokenStatus GeoWork::tokenStatus() const { return _tokenStatus; }
 
 QByteArray GeoWork::authHeader() const {
     if (_bearerToken.isEmpty()) {
@@ -177,7 +191,7 @@ bool GeoWork::setBearerTokenFromFile(const QString& fileUrl) {
 void GeoWork::validateToken() {
     using enum TokenStatus;
 
-    // TODO: Replace with a real server validation endpoint if available.
+    // TODO Replace with a real server validation endpoint if available.
     TokenStatus newStatus { None }; // NoToken
     if (_bearerToken.isEmpty()) {
         newStatus = None;
@@ -198,7 +212,7 @@ void GeoWork::validateToken() {
 void GeoWork::saveSettings() {
     _settings.setValue(QStringLiteral("deviceName"), _deviceName);
     _settings.setValue(QStringLiteral("bearerToken"), _bearerToken);
-    _settings.setValue(QStringLiteral("tokenStatus"), static_cast<std::uint32_t>(_tokenStatus));
+    _settings.setValue(QStringLiteral("tokenStatus"), to_underlying(_tokenStatus));
     _settings.sync();
 }
 
@@ -229,7 +243,7 @@ void GeoWork::loadSettings() {
 
     if (any) {
         qInfo() << "[GeoWork] Settings loaded. deviceName =" << _deviceName << " tokenLen =" << _bearerToken.size()
-                << " tokenStatus =" << static_cast<std::uint32_t>(_tokenStatus);
+                << " tokenStatus =" << to_underlying(_tokenStatus);
     }
 }
 

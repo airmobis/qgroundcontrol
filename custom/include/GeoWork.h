@@ -19,7 +19,7 @@ class GeoWork : public QObject {
     Q_PROPERTY(QString bearerToken READ bearerToken WRITE setBearerToken NOTIFY bearerTokenChanged)
 
     // 0 = NoToken (grey), 1 = Valid (green), 2 = Invalid (red)
-    Q_PROPERTY(int tokenStatus READ tokenStatus NOTIFY tokenStatusChanged)
+    Q_PROPERTY(TokenStatus tokenStatus READ tokenStatus NOTIFY tokenStatusChanged)
 
 public:
     enum class TokenStatus : std::uint8_t {
@@ -31,11 +31,11 @@ public:
     explicit GeoWork(QObject* parent = nullptr);
 
     // Getters for QML
-    QString     projectId() const { return _projectId; }
-    QString     stateId() const { return _stateId; }
-    QString     deviceName() const { return _deviceName; }
-    QString     bearerToken() const { return _bearerToken; }
-    TokenStatus tokenStatus() const { return _tokenStatus; }
+    QString     projectId() const;
+    QString     stateId() const;
+    QString     deviceName() const;
+    QString     bearerToken() const;
+    TokenStatus tokenStatus() const;
 
 public slots:
     // --- Main flow used by QML ---
@@ -44,11 +44,13 @@ public slots:
 
     // 2) Create a marker using current GPS from active vehicle
     void createMarker();
+
     // ---- Minimal additions ----
     Q_INVOKABLE void setVideoItem(QObject* videoItem); // bind the live video surface from QML
     Q_INVOKABLE void AddPhoto();
     Q_INVOKABLE void AddPhotoForMarker(const QString& markerId);
-    Q_INVOKABLE void autoBindVideo(); // try to locate video item automatically                         // capture current frame and save to Downloads
+    Q_INVOKABLE void autoBindVideo(); // try to locate video item automatically
+                                      // capture current frame and save to Downloads
 
     // --- Settings helpers (persisted via QSettings) ---
     void setDeviceName(const QString& name);
