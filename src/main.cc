@@ -11,45 +11,46 @@
 #include <QtWidgets/QApplication>
 
 #ifdef Q_OS_MACOS
-    #include <QtCore/QProcessEnvironment>
+#include <QtCore/QProcessEnvironment>
 #endif
 
+#include "CmdLineOptParser.h"
+#include "MavlinkSettings.h"
 #include "QGCApplication.h"
 #include "QGCLogging.h"
-#include "CmdLineOptParser.h"
 #include "SettingsManager.h"
-#include "MavlinkSettings.h"
 
 #if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
-    #include <QtWidgets/QMessageBox>
-    #include "RunGuard.h"
+#include <QtWidgets/QMessageBox>
+
+#include "RunGuard.h"
 #endif
 
 #ifdef Q_OS_ANDROID
-    #include "AndroidInterface.h"
+#include "AndroidInterface.h"
 #endif
 
 #ifdef Q_OS_LINUX
 #ifndef Q_OS_ANDROID
-    #include "SignalHandler.h"
+#include "SignalHandler.h"
 #endif
 #endif
 
 #ifdef QT_DEBUG
 #ifdef QGC_UNITTEST_BUILD
-    #include "UnitTestList.h"
+#include "UnitTestList.h"
 #endif
 
 #ifdef Q_OS_WIN
 
 #include <crtdbg.h>
 #include <windows.h>
+
 #include <iostream>
 
 /// @brief CRT Report Hook installed using _CrtSetReportHook. We install this hook when
 /// we don't want asserts to pop a dialog on windows.
-int WindowsCrtReportHook(int reportType, char* message, int* returnValue)
-{
+int WindowsCrtReportHook(int reportType, char* message, int* returnValue) {
     Q_UNUSED(reportType);
 
     std::cerr << message << std::endl;  // Output message to stderr
@@ -57,9 +58,9 @@ int WindowsCrtReportHook(int reportType, char* message, int* returnValue)
     return true;                        // We handled this fully ourselves
 }
 
-#endif // Q_OS_WIN
+#endif  // Q_OS_WIN
 
-#endif // QT_DEBUG
+#endif  // QT_DEBUG
 
 //-----------------------------------------------------------------------------
 /**
@@ -70,27 +71,26 @@ int WindowsCrtReportHook(int reportType, char* message, int* returnValue)
  * @return exit code, 0 for normal exit and !=0 for error cases
  */
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char* argv[]) {
     bool runUnitTests = false;
     bool simpleBootTest = false;
     QString systemIdStr = QString();
     bool hasSystemId = false;
     bool bypassRunGuard = false;
 
-    bool stressUnitTests = false;       // Stress test unit tests
-    bool quietWindowsAsserts = false;   // Don't let asserts pop dialog boxes
+    bool stressUnitTests = false;      // Stress test unit tests
+    bool quietWindowsAsserts = false;  // Don't let asserts pop dialog boxes
     QString unitTestOptions;
 
     CmdLineOpt_t rgCmdLineOptions[] = {
 #ifdef QT_DEBUG
-        { "--unittest",             &runUnitTests,          &unitTestOptions },
-        { "--unittest-stress",      &stressUnitTests,       &unitTestOptions },
-        { "--no-windows-assert-ui", &quietWindowsAsserts,   nullptr },
-        { "--allow-multiple",       &bypassRunGuard,        nullptr },
+        {"--unittest", &runUnitTests, &unitTestOptions},
+        {"--unittest-stress", &stressUnitTests, &unitTestOptions},
+        {"--no-windows-assert-ui", &quietWindowsAsserts, nullptr},
+        {"--allow-multiple", &bypassRunGuard, nullptr},
 #endif
-        { "--system-id",            &hasSystemId,           &systemIdStr },
-        { "--simple-boot-test",     &simpleBootTest,        nullptr },
+        {"--system-id", &hasSystemId, &systemIdStr},
+        {"--simple-boot-test", &simpleBootTest, nullptr},
         // Add additional command line option flags here
     };
 
@@ -106,9 +106,10 @@ int main(int argc, char *argv[])
     RunGuard guard(runguardString);
     if (!bypassRunGuard && !guard.tryToRun()) {
         QApplication errorApp(argc, argv);
-        QMessageBox::critical(nullptr, QObject::tr("Error"),
-            QObject::tr("A second instance of %1 is already running. Please close the other instance and try again.").arg(QGC_APP_NAME)
-        );
+        QMessageBox::critical(
+            nullptr, QObject::tr("Error"),
+            QObject::tr("A second instance of %1 is already running. Please close the other instance and try again.")
+                .arg(QGC_APP_NAME));
         return -1;
     }
 #endif
@@ -118,10 +119,10 @@ int main(int argc, char *argv[])
     if (getuid() == 0) {
         QApplication errorApp(argc, argv);
         QMessageBox::critical(nullptr, QObject::tr("Error"),
-            QObject::tr("You are running %1 as root. "
-                "You should not do this since it will cause other issues with %1."
-                "%1 will now exit.<br/><br/>").arg(QGC_APP_NAME)
-        );
+                              QObject::tr("You are running %1 as root. "
+                                          "You should not do this since it will cause other issues with %1."
+                                          "%1 will now exit.<br/><br/>")
+                                  .arg(QGC_APP_NAME));
         return -1;
     }
 #endif
@@ -138,7 +139,7 @@ int main(int argc, char *argv[])
 #ifdef Q_OS_MACOS
     // Prevent Apple's app nap from screwing us over
     // tip: the domain can be cross-checked on the command line with <defaults domains>
-    QProcess::execute("defaults", {"write org.qgroundcontrol.qgroundcontrol NSAppSleepDisabled -bool YES"});
+    QProcess::execute("defaults", {"write", "org.qgroundcontrol.qgroundcontrol", "NSAppSleepDisabled", "-bool", "YES"});
 #endif
 
 #ifdef Q_OS_WIN
@@ -165,7 +166,7 @@ int main(int argc, char *argv[])
 
 #ifdef Q_OS_WIN
     if (!qEnvironmentVariableIsSet("QT_WIN_DEBUG_CONSOLE")) {
-        qputenv("QT_WIN_DEBUG_CONSOLE", "attach"); // new
+        qputenv("QT_WIN_DEBUG_CONSOLE", "attach");  // new
     }
 
     if (quietWindowsAsserts) {
@@ -178,15 +179,15 @@ int main(int argc, char *argv[])
         const DWORD dwMode = SetErrorMode(SEM_NOGPFAULTERRORBOX);
         SetErrorMode(dwMode | SEM_NOGPFAULTERRORBOX);
     }
-#endif // Q_OS_WIN
-#endif // QT_DEBUG
+#endif  // Q_OS_WIN
+#endif  // QT_DEBUG
 
     QGCApplication app(argc, argv, runUnitTests, simpleBootTest);
 
 #ifdef Q_OS_LINUX
 #ifndef Q_OS_ANDROID
     SignalHandler::instance();
-    (void) SignalHandler::setupSignalHandlers();
+    (void)SignalHandler::setupSignalHandlers();
 #endif
 #endif
 
@@ -200,7 +201,8 @@ int main(int argc, char *argv[])
             qDebug() << "Setting MAVLink System ID to:" << systemId;
             SettingsManager::instance()->mavlinkSettings()->gcsMavlinkSystemID()->setRawValue(systemId);
         } else {
-            qDebug() << "Not setting MAVLink System ID. It must be between 0 and 255. Invalid system ID value:" << systemIdStr;
+            qDebug() << "Not setting MAVLink System ID. It must be between 0 and 255. Invalid system ID value:"
+                     << systemIdStr;
         }
     }
 
@@ -212,9 +214,9 @@ int main(int argc, char *argv[])
     } else
 #endif
     {
-        #ifdef Q_OS_ANDROID
-            AndroidInterface::checkStoragePermissions();
-        #endif
+#ifdef Q_OS_ANDROID
+        AndroidInterface::checkStoragePermissions();
+#endif
 
         if (!simpleBootTest) {
             exitCode = app.exec();
