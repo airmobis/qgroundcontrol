@@ -15,15 +15,16 @@ QGC_LOGGING_CATEGORY(HerelinkCorePluginLog, "HerelinkCorePluginLog")
 Q_APPLICATION_STATIC(CustomPlugin, _customPluginInstance);
 
 CustomPlugin::CustomPlugin(QObject* parent)
-    : QGCCorePlugin { parent } {
+    : QGCCorePlugin { parent }
+    , _herelinkOptions { this, parent } {
 }
 
 QGCCorePlugin* CustomPlugin::instance() {
     return _customPluginInstance;
 }
 
-QGCOptions* CustomPlugin::options(void) {
-    return qobject_cast<QGCOptions*>(m_herelinkOptions);
+QGCOptions* CustomPlugin::options() {
+    return qobject_cast<QGCOptions*>(&_herelinkOptions);
 }
 
 bool CustomPlugin::overrideSettingsGroupVisibility(QString name) {

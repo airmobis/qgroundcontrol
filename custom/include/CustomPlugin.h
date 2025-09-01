@@ -19,13 +19,11 @@ public:
     explicit CustomPlugin(QObject* parent = nullptr);
 
     static QGCCorePlugin* instance();
+    QGCOptions*           options() final;
 
     constexpr bool isHerelink(void) const {
         return true;
     }
-
-    // Overrides QGCCorePlugin.
-    QGCOptions* options(void) override;
 
     bool overrideSettingsGroupVisibility(QString name);
     bool adjustSettingMetaData(const QString& settingsGroup, FactMetaData& metaData) override;
@@ -35,5 +33,5 @@ private slots:
     void activeVehicleChanged(Vehicle* activeVehicle);
 
 private:
-    HerelinkOptions* m_herelinkOptions;
+    HerelinkOptions _herelinkOptions;
 };
