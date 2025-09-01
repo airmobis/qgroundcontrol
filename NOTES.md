@@ -22,12 +22,12 @@ _This file serves to document my experience working with and modifying QGroundCo
 
 ## clangd integration
 - As mentioned above, the `custom` directory _seems_ like its own module, but it's really dependent on QGC's APIs, which confuses clangd. To ease the pain, I decided to replace the `CMakeLists.txt` with a `config.cmake` file, which essentially runs the same logic, but ensures language server integration with the entire project.
-    - A modification in the top-level `CMakeLists.txt` was required---I replaced `add_subdirectory(custom)` with `include(custom/config.cmake)` on line 261.
+    - A modification in the top-level `CMakeLists.txt` was required&mdash;I replaced `add_subdirectory(custom)` with `include(custom/config.cmake)` on line 261.
 
 ## Porting the Herelink plugin
 - The `cameraId` parameter seems to have been changed from an integer type to a `QString`.
 - Plugins and other manager classes are now accessible via a static `instance()` method.
-- There were some undefined symbols during linking---turns out Qt's MOC needs header files to be added as target sources as well. Compilation was sucessful after that[^1].
+- There were some undefined symbols during linking&mdash;turns out Qt's MOC needs header files to be added as target sources as well. Compilation was sucessful after that[^1].
 - Afterwards, the compiled `QGroundControl-herelink.app` would crash right after launching; I tracked it down to `SettingsFact.cc:37`, where it became clear that the crash was due to `CustomPlugin` not overriding `QGCCorePlugin::instance()`[^2].
 
 ## TODO
