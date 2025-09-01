@@ -27,6 +27,11 @@ _This file serves to document my experience working with and modifying QGroundCo
 ## Porting the Herelink plugin
 - The `cameraId` parameter seems to have been changed from an integer type to a `QString`.
 - Plugins and other manager classes are now accessible via a static `instance()` method.
+- There were some undefined symbols during linking---turns out Qt's MOC needs header files to be added as target sources as well. Compilation was sucessful after that[^1].
+- Afterwards, the compiled `QGroundControl-herelink.app` would crash right after launching; I tracked it down to `SettingsFact.cc:37`, where it became clear that the crash was due to `CustomPlugin` not overriding `QGCCorePlugin::instance()`[^2].
 
 ## TODO
 - Test the (non-custom) build on a work PC.
+
+[^1]: Fixed in commit 139d4109d740aa7eb96b23e68ec3738f59a7d97f.
+[^2]: Fixed in commit aba10c93ee2056866fc87b7f1afe09a38d401616.
