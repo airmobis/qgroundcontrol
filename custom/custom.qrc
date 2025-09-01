@@ -21,7 +21,7 @@
     </qresource>
 
     <qresource prefix="/Custom/qml">
-        <file alias="QGroundControl/FlightDisplay/FlyViewCustomLayer.qml">res/CustomFlyViewOverlay.qml</file>
+        <file alias="QGroundControl/FlightDisplay/FlyViewCustomLayer.qml">res/FlyViewCustomLayer.qml</file>
         <file alias="QGroundControl/FlightDisplay/GeoWorkSettingsPanel.qml">res/GeoWorkSettingsPanel.qml</file>
     </qresource>
 

@@ -52,28 +52,16 @@ qt_add_library(CustomModule STATIC)
 target_link_libraries(CustomModule PUBLIC Qt6::Core)
 target_include_directories(CustomModule PUBLIC include)
 
-set_source_files_properties(res/Custom/Widgets/CustomArtificialHorizon.qml PROPERTIES QT_RESOURCE_ALIAS CustomArtificialHorizon.qml)
-set_source_files_properties(res/Custom/Widgets/CustomAttitudeWidget.qml PROPERTIES QT_RESOURCE_ALIAS CustomAttitudeWidget.qml)
-set_source_files_properties(res/Custom/Widgets/CustomIconButton.qml PROPERTIES QT_RESOURCE_ALIAS CustomIconButton.qml)
-set_source_files_properties(res/Custom/Widgets/CustomOnOffSwitch.qml PROPERTIES QT_RESOURCE_ALIAS CustomOnOffSwitch.qml)
-set_source_files_properties(res/Custom/Widgets/CustomQuickButton.qml PROPERTIES QT_RESOURCE_ALIAS CustomQuickButton.qml)
-set_source_files_properties(res/Custom/Widgets/CustomSignalStrength.qml PROPERTIES QT_RESOURCE_ALIAS CustomSignalStrength.qml)
-set_source_files_properties(res/Custom/Widgets/CustomToolBarButton.qml PROPERTIES QT_RESOURCE_ALIAS CustomToolBarButton.qml)
-set_source_files_properties(res/Custom/Widgets/CustomVehicleButton.qml PROPERTIES QT_RESOURCE_ALIAS CustomVehicleButton.qml)
+set_source_files_properties(res/FlyViewCustomLayer.qml PROPERTIES QT_RESOURCE_ALIAS QGroundControl/FlightDisplay/FlyViewCustomLayer.qml)
+set_source_files_properties(res/GeoWorkSettingsPanel.qml PROPERTIES QT_RESOURCE_ALIAS GeoWorkSettingsPanel.qml)
 
 qt_add_qml_module(CustomModule
     URI Custom.Widgets
     VERSION 1.0
     RESOURCE_PREFIX /qml
     QML_FILES
-        custom/res/Custom/Widgets/CustomArtificialHorizon.qml
-        custom/res/Custom/Widgets/CustomAttitudeWidget.qml
-        custom/res/Custom/Widgets/CustomIconButton.qml
-        custom/res/Custom/Widgets/CustomOnOffSwitch.qml
-        custom/res/Custom/Widgets/CustomQuickButton.qml
-        custom/res/Custom/Widgets/CustomSignalStrength.qml
-        custom/res/Custom/Widgets/CustomToolBarButton.qml
-        custom/res/Custom/Widgets/CustomVehicleButton.qml
+        custom/res/FlyViewCustomLayer.qml
+        custom/res/GeoWorkSettingsPanel.qml
     NO_PLUGIN
 )
 
