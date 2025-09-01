@@ -42,3 +42,4 @@ _This file serves to document my experience working with and modifying QGroundCo
 - Modified `README.md`
 - Modified `find_package()` logic for GStreamer in `src/VideoManager/VideoReceiver/GStreamer/gstqml6gl/CMakeLists.txt`
 - Removed `cmake/modules/FindGStreamer.cmake`
+- Removed `QGC_CPM_SOURCE_CACHE`
