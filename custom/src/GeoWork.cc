@@ -42,7 +42,7 @@ namespace {
         kUrlReportLocation { "https://api.geowork.mobis1.com/vehicles-reporting/report-location" };
 
     template <typename E>
-    std::underlying_type_t<E> to_underlying(E e) {
+    constexpr std::underlying_type_t<E> to_underlying(E e) {
         return static_cast<std::underlying_type_t<E>>(e);
     }
 }
@@ -93,7 +93,7 @@ bool GeoWork::_getActiveVehicleCoordinate(double& latOut, double& lonOut, double
     }
 
     Vehicle* vehicle { mvm->activeVehicle() };
-    if (!vehicle) {
+    if (vehicle == nullptr) {
         qWarning() << "[GeoWork] No active vehicle";
         return false;
     }
@@ -268,7 +268,7 @@ void GeoWork::checkActiveTaskAndFetchState(const QString& stateName) {
     }
 
     // 1) Check the current session for an active task
-    QNetworkRequest req { QString::fromUtf8(kUrlSession) };
+    QNetworkRequest req { QUrl { QString::fromUtf8(kUrlSession) } };
     req.setRawHeader("Authorization", authHeader());
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
@@ -315,7 +315,7 @@ void GeoWork::checkActiveTaskAndFetchState(const QString& stateName) {
         replySession->deleteLater();
 
         // 2) Resolve state for this device/name
-        QNetworkRequest reqState { QString::fromUtf8(kUrlState) };
+        QNetworkRequest reqState { QUrl { QString::fromUtf8(kUrlState) } };
         reqState.setRawHeader("Authorization", authHeader());
         reqState.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
@@ -398,7 +398,7 @@ void GeoWork::createMarker() {
     payload.insert(QStringLiteral("stateId"), _stateId);
     payload.insert(QStringLiteral("geometry"), geom);
 
-    QNetworkRequest req { QString::fromUtf8(kUrlMarker) };
+    QNetworkRequest req { QUrl { QString::fromUtf8(kUrlMarker) } };
     req.setRawHeader("Authorization", authHeader());
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
@@ -735,7 +735,7 @@ void GeoWork::reportLocation() {
         payload { { "locations", QJsonArray { loc } } };
 
     // --- POST it ---
-    QNetworkRequest req { QString::fromUtf8(kUrlReportLocation) };
+    QNetworkRequest req { QUrl { QString::fromUtf8(kUrlReportLocation) } };
     req.setRawHeader("Authorization", authHeader()); // "Bearer …"
     req.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
