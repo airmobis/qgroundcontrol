@@ -12,8 +12,14 @@
 
 QGC_LOGGING_CATEGORY(HerelinkCorePluginLog, "HerelinkCorePluginLog")
 
-CustomPlugin::CustomPlugin(QGCApplication* app)
-    : QGCCorePlugin { app } {
+Q_APPLICATION_STATIC(CustomPlugin, _customPluginInstance);
+
+CustomPlugin::CustomPlugin(QObject* parent)
+    : QGCCorePlugin { parent } {
+}
+
+QGCCorePlugin* CustomPlugin::instance() {
+    return _customPluginInstance;
 }
 
 QGCOptions* CustomPlugin::options(void) {

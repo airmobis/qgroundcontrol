@@ -13,10 +13,12 @@ Q_DECLARE_LOGGING_CATEGORY(HerelinkCorePluginLog)
 class CustomPlugin : public QGCCorePlugin {
     Q_OBJECT
 
-public:
-    explicit CustomPlugin(QGCApplication* app);
-
     Q_PROPERTY(bool isHerelink READ isHerelink CONSTANT)
+
+public:
+    explicit CustomPlugin(QObject* parent = nullptr);
+
+    static QGCCorePlugin* instance();
 
     constexpr bool isHerelink(void) const {
         return true;
