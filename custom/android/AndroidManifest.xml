@@ -5,6 +5,10 @@
     android:versionCode="-- %%INSERT_VERSION_CODE%% --"
     android:versionName="-- %%INSERT_VERSION_NAME%% --">
 
+    <uses-sdk android:minSdkVersion="25"
+              android:targetSdkVersion="33"
+              android:maxSdkVersion="33" />
+
     <supports-screens
         android:anyDensity="true"
         android:largeScreens="true"

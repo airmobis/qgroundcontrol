@@ -67,7 +67,7 @@ bool CustomPlugin::adjustSettingMetaData(const QString& settingsGroup, FactMetaD
             };
 
             for (const std::string_view dahs : disabledAndHiddenSettings) {
-                if (dahs == metaData.name()) {
+                if (metaData.name() == dahs.data()) {
                     metaData.setRawDefaultValue(false);
                 }
             }
