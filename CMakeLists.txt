@@ -182,7 +182,7 @@ find_package(Qt6
         Core
         Core5Compat
         Gui
-        LinguistTools
+        Linguist
         Location
         Multimedia
         Network
