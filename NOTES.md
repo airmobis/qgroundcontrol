@@ -14,12 +14,6 @@ _This file serves to document my experience working with and modifying QGroundCo
 - There are some caveats, though. The custom sources depend on QGC itself, so being "truly" modular probably isn't possible. Instead, the `CMakeLists.txt` file is responsible for not only creating its own libraries, but also creating variables that tell the top-level `CMakeLists.txt` which additional sources, include directories, and resources it should work with.
 - Larger projects often come with their own rules, and it doesn't have to hurt as long as they document exactly how they stray from the beaten path (which QGC does). Either way, it's better to remember a few quirks than to go on a mass-refactoring rampage of the entire project in the name of "best practices." **We do not want to touch the core QGC project unless absolutely necessary**, see [this explanation](https://docs.qgroundcontrol.com/master/en/qgc-dev-guide/custom_build/fork_repo.html#modifying-mainline-qgc-source-code).
 
-## Configuring for Android
-- Installing Qt 6.8.3 and Qt Creator via the official "online installer" unlocked Android kits to compile with.
-    - Configuring via Qt Creator failed, since Ninja wasn't found in the sysroot. Easy enough to solve with a symlink.
-    - I'm currently stuck on glib2 not being found. Probably due to some sysroot tomfoolery.
-    - ...and I didn't manage to get past it. Guess I'll stick to using macOS for coding and leave the Android compilation part for Linux.
-
 ## clangd integration
 - As mentioned above, the `custom` directory _seems_ like its own module, but it's really dependent on QGC's APIs, which confuses clangd. To ease the pain, I decided to replace the `CMakeLists.txt` with a `config.cmake` file, which essentially runs the same logic, but ensures language server integration with the entire project.
     - A modification in the top-level `CMakeLists.txt` was required&mdash;I replaced `add_subdirectory(custom)` with `include(custom/config.cmake)` on line 261.
@@ -30,17 +24,21 @@ _This file serves to document my experience working with and modifying QGroundCo
 - There were some undefined symbols during linking&mdash;turns out Qt's MOC needs header files to be added as target sources as well. Compilation was sucessful after that[^1].
 - Afterwards, the compiled `QGroundControl-herelink.app` would crash right after launching; I tracked it down to `SettingsFact.cc:37`, where it became clear that the crash was due to `CustomPlugin` not overriding `QGCCorePlugin::instance()`[^2].
 
-## TODO
-- Test the (non-custom) build on a work PC.
+## Configuring for Android
+- QGroundControl 5 migrated to pure CMake, so we'll try and do the same, instead of going down a rabbit hole with Qt Creator.
+    - After installing the Android toolchain along with NDK r26b and build-tools 26.3, everything seemed OK, but the project has one last error up its sleeve&mdash;Qt6LinguistTools could apparently not be located! After some hair-tearing, I finally found the fix: Including LinguistTools by themselves in QGC's `CMakeLists.txt` was a problem
 
 ## Changes from upstream (excl. custom directory)
+_These can also be queried via `git diff upstream/Stable_V5.0 origin/Stable_V5.0`, but it's nice to have a concise list._
 - Added Android GStreamer directory to `.gitignore`
 - Added `NOTES.md` (this file)
 - Modified `README.md`
 - Modified `find_package()` logic for GStreamer in `src/VideoManager/VideoReceiver/GStreamer/gstqml6gl/CMakeLists.txt`
+- Modified `CMakeLists.txt` to include Linguist instead of LinguistTools[^3]
 - Removed `cmake/modules/FindGStreamer.cmake`
-- Removed `QGC_CPM_SOURCE_CACHE`[^3]
+- Removed `QGC_CPM_SOURCE_CACHE`[^4]
 
 [^1]: Fixed in commit 139d4109d740aa7eb96b23e68ec3738f59a7d97f.
 [^2]: Fixed in commit aba10c93ee2056866fc87b7f1afe09a38d401616.
-[^3]: Removed in commit e41985c7decf225f9cff198ccc9efd5fd2f2ff4c.
+[^3]: Modified in commit 5e3feac9ab615fdcacdd2f009871f655cc3f3e76
+[^4]: Removed in commit e41985c7decf225f9cff198ccc9efd5fd2f2ff4c.
