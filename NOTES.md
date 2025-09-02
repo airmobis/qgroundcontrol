@@ -1,5 +1,4 @@
 # Developer notes (Petr)
-
 _This file serves to document my experience working with and modifying QGroundControl 5 on my MacBook Air M2, as well as to record potentially helpful information I gathered along the way._
 
 ## Initial build
@@ -26,7 +25,8 @@ _This file serves to document my experience working with and modifying QGroundCo
 
 ## Configuring for Android
 - QGroundControl 5 migrated to pure CMake, so we'll try and do the same, instead of going down a rabbit hole with Qt Creator.
-    - After installing the Android toolchain along with NDK r26b and build-tools 26.3, everything seemed OK, but the project has one last error up its sleeve&mdash;Qt6LinguistTools could apparently not be located! After some hair-tearing, I finally found the fix: Including LinguistTools by themselves in QGC's `CMakeLists.txt` was a problem
+    - After installing the Android toolchain along with NDK r26b and build-tools 26.3, everything seemed OK, but the project has one last error up its sleeve&mdash;Qt6LinguistTools could apparently not be located! After some hair-tearing, I finally found the fix: Including LinguistTools by themselves in QGC's `CMakeLists.txt` fixed the problem.
+    - The APK refused to build because my `sdkmanager` packages were outdated (min. `build-tools;35.0.0` and `platforms;android-34`). Easy enough to upgrade.
 
 ## Changes from upstream (excl. custom directory)
 _These can also be queried via `git diff upstream/Stable_V5.0 origin/Stable_V5.0`, but it's nice to have a concise list._
