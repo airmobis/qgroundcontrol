@@ -34,7 +34,7 @@ endif()
 
 # Our own, custom resources
 list(APPEND CUSTOM_RESOURCES
-    ${CMAKE_CURRENT_LIST_DIR}/custom.qrc
+    ${CMAKE_CURRENT_LIST_DIR}/custom.qrc # TODO add remaning resources
 )
 
 set(

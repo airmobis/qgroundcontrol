@@ -1,6 +1,12 @@
 # Developer notes (Petr)
 _This file serves to document my experience working with and modifying QGroundControl 5 on my MacBook Air M2, as well as to record potentially helpful information I gathered along the way._
 
+## Android build dequirements
+- Build Tools r35 (`build-tools;35.0.0`)
+- NDK 25.1 (`ndk;25.1.8937393`)
+- Platform Tools (`platform-tools`)
+- SDK Platform 34 (`platforms;android-34`)
+
 ## Initial build
 - GStreamer didn't provide its own `FindGStreamer.cmake` on macOS before 1.26, so both QGroundControl and Qt6 have their own
     - With 1.26, it's necessary to **prepend** its directory to `CMAKE_MODULE_PATH`, or the Qt version gets tried first and fails.
