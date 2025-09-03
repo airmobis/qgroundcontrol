@@ -19,13 +19,15 @@ VideoStreamControl::VideoStreamControl()
     connect(MAVLinkProtocol::instance(), &MAVLinkProtocol::messageReceived, this, &VideoStreamControl::mavlinkMessageReceived);
     connect(m_videoSource, &Fact::rawValueChanged, this, &VideoStreamControl::cameraIdChanged);
     connect(&m_settingInProgressTimer, &QTimer::timeout, this, &VideoStreamControl::settingInProgressTimeout);
+
+    qCDebug(VideoStreamControlLog) << "Initialized VideoStreamControl";
 }
 
 bool VideoStreamControl::settingInProgress() const {
     return m_settingInProgress;
 }
 
-void VideoStreamControl::mavlinkMessageReceived(LinkInterface* link, mavlink_message_t message) {
+void VideoStreamControl::mavlinkMessageReceived(LinkInterface* link, const mavlink_message_t& message) {
     if (message.msgid == MAVLINK_MSG_ID_HEARTBEAT && message.compid == MAV_COMP_ID_CAMERA) {
         handleHeartbeatInfo(link, message);
     }
@@ -40,7 +42,7 @@ void VideoStreamControl::cameraIdChanged() {
     setCameraIdLockUi(true);
 }
 
-void VideoStreamControl::handleHeartbeatInfo(LinkInterface* link, mavlink_message_t& message) {
+void VideoStreamControl::handleHeartbeatInfo(LinkInterface* link, const mavlink_message_t& message) {
     mavlink_heartbeat_t heartbeat;
     mavlink_msg_heartbeat_decode(&message, &heartbeat);
 

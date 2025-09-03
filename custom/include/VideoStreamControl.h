@@ -23,7 +23,7 @@ signals:
     void videoNeedsReset();
 
 private slots:
-    void mavlinkMessageReceived(LinkInterface* link, mavlink_message_t message);
+    void mavlinkMessageReceived(LinkInterface* link, const mavlink_message_t& message);
     void settingInProgressTimeout();
     void cameraIdChanged();
 
@@ -42,7 +42,7 @@ private:
 
     bool m_settingInProgress;
 
-    void handleHeartbeatInfo(LinkInterface* link, mavlink_message_t& message);
+    void handleHeartbeatInfo(LinkInterface* link, const mavlink_message_t& message);
     void setCameraId();
     void setCameraIdLockUi(bool lockUi);
     void startVideoStreaming();

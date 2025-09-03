@@ -4,8 +4,8 @@ message(STATUS "QGC: Adding Custom Plugin")
 set_property(DIRECTORY ${CMAKE_SOURCE_DIR}
     APPEND PROPERTY COMPILE_DEFINITIONS
     QGC_CUSTOM_BUILD
-    CUSTOMHEADER="CustomPlugin.h"
-    CUSTOMCLASS=CustomPlugin
+    CUSTOMHEADER="HerelinkCorePlugin.h"
+    CUSTOMCLASS=HerelinkCorePlugin
 )
 
 if(ANDROID)
@@ -34,17 +34,17 @@ endif()
 
 # Our own, custom resources
 list(APPEND CUSTOM_RESOURCES
-    ${CMAKE_CURRENT_LIST_DIR}/custom.qrc # TODO add remaning resources
+    ${CMAKE_CURRENT_LIST_DIR}/custom.qrc
 )
 
 set(
     QGC_RESOURCES ${QGC_RESOURCES} ${CUSTOM_RESOURCES}
-    CACHE STRING "Paths to .qrc Resources" FORCE
+    CACHE STRING "Paths to .qrc resources" FORCE
 )
 
 set(
     QML_IMPORT_PATH ${QML_IMPORT_PATH} "${CMAKE_CURRENT_LIST_DIR}/res"
-    CACHE STRING "Extra qml import paths" FORCE
+    CACHE STRING "Extra QML import paths" FORCE
 )
 
 qt_add_library(CustomModule STATIC)
@@ -52,31 +52,35 @@ qt_add_library(CustomModule STATIC)
 target_link_libraries(CustomModule PUBLIC Qt6::Core)
 target_include_directories(CustomModule PUBLIC include)
 
-set_source_files_properties(res/FlyViewCustomLayer.qml PROPERTIES QT_RESOURCE_ALIAS QGroundControl/FlightDisplay/FlyViewCustomLayer.qml)
-set_source_files_properties(res/GeoWorkSettingsPanel.qml PROPERTIES QT_RESOURCE_ALIAS GeoWorkSettingsPanel.qml)
+# set_source_files_properties(res/FlyViewCustomLayer.qml PROPERTIES
+#     QT_RESOURCE_ALIAS QGroundControl/FlightDisplay/FlyViewCustomLayer.qml
+# )
+#
+# set_source_files_properties(res/GeoWorkSettingsPanel.qml PROPERTIES
+#     QT_RESOURCE_ALIAS GeoWorkSettingsPanel.qml
+# )
 
 qt_add_qml_module(CustomModule
     URI Custom.Widgets
     VERSION 1.0
     RESOURCE_PREFIX /qml
     QML_FILES
-        custom/res/FlyViewCustomLayer.qml
-        custom/res/GeoWorkSettingsPanel.qml
     NO_PLUGIN
 )
 
+# NOTE: Headers need to be included as well in order for
+# Qt's MOC to do its job correctly--do not remove!
 set(CUSTOM_SOURCES
-    ${CMAKE_CURRENT_LIST_DIR}/include/CustomPlugin.h
+    # ${CMAKE_CURRENT_LIST_DIR}/include/GeoWork.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/HerelinkCorePlugin.h
     ${CMAKE_CURRENT_LIST_DIR}/include/HerelinkOptions.h
-    ${CMAKE_CURRENT_LIST_DIR}/include/GeoWork.h
     ${CMAKE_CURRENT_LIST_DIR}/include/VideoStreamControl.h
 
-    ${CMAKE_CURRENT_LIST_DIR}/src/CustomPlugin.cc
-    ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork.cc
+    # ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork.cc
+    # ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork_qmlinit.cc
+    ${CMAKE_CURRENT_LIST_DIR}/src/HerelinkCorePlugin.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/HerelinkOptions.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/VideoStreamControl.cc
-
-    ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork_qmlinit.cc
 
     CACHE INTERNAL "" FORCE
 )
@@ -85,10 +89,10 @@ set(CUSTOM_SOURCES
 # TODO: Remove when support for this version is dropped
 set(CUSTOM_LIBRARIES
     CustomModule
-    CACHE INTERNAL "" FORCE
+    CACHE INTERNAL "[Custom] Libraries to link" FORCE
 )
 
 set(CUSTOM_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_LIST_DIR}/include
-    CACHE INTERNAL "" FORCE
+    CACHE INTERNAL "[Custom] Directories to include" FORCE
 )

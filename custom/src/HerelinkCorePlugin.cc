@@ -1,4 +1,4 @@
-#include "CustomPlugin.h"
+#include "HerelinkCorePlugin.h"
 
 #include "AppSettings.h"
 #include "AutoConnectSettings.h"
@@ -10,27 +10,27 @@
 
 QGC_LOGGING_CATEGORY(HerelinkCorePluginLog, "HerelinkCorePluginLog")
 
-Q_APPLICATION_STATIC(CustomPlugin, _customPluginInstance);
+Q_APPLICATION_STATIC(HerelinkCorePlugin, _customPluginInstance);
 
-CustomPlugin::CustomPlugin(QObject* parent)
+HerelinkCorePlugin::HerelinkCorePlugin(QObject* parent)
     : QGCCorePlugin { parent }
     , _herelinkOptions { this, parent } {
 }
 
-QGCCorePlugin* CustomPlugin::instance() {
+QGCCorePlugin* HerelinkCorePlugin::instance() {
     return _customPluginInstance;
 }
 
-QGCOptions* CustomPlugin::options() {
+QGCOptions* HerelinkCorePlugin::options() {
     return qobject_cast<QGCOptions*>(&_herelinkOptions);
 }
 
-bool CustomPlugin::overrideSettingsGroupVisibility(const QString& name) {
+bool HerelinkCorePlugin::overrideSettingsGroupVisibility(const QString& name) {
     // Hide all AutoConnect settings.
     return name != AutoConnectSettings::name;
 }
 
-bool CustomPlugin::adjustSettingMetaData(const QString& settingsGroup, FactMetaData& metaData) {
+bool HerelinkCorePlugin::adjustSettingMetaData(const QString& settingsGroup, FactMetaData& metaData) {
     if (settingsGroup == AppSettings::settingsGroup) {
         // Default Herelink font size of 10, nice starting point.
         if (metaData.name() == AppSettings::appFontPointSizeName) {
@@ -87,7 +87,7 @@ bool CustomPlugin::adjustSettingMetaData(const QString& settingsGroup, FactMetaD
     return true;
 }
 
-void CustomPlugin::activeVehicleChanged(Vehicle* activeVehicle) {
+void HerelinkCorePlugin::activeVehicleChanged(Vehicle* activeVehicle) {
     if (activeVehicle == nullptr) {
         return;
     }
