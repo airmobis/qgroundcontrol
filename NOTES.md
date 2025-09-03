@@ -33,6 +33,10 @@ _This file serves to document my experience working with and modifying QGroundCo
 - There were some undefined symbols during linking&mdash;turns out Qt's MOC needs header files to be added as target sources as well. Compilation was sucessful after that[^1].
 - Afterwards, the compiled `QGroundControl-herelink.app` would crash right after launching; I tracked it down to `SettingsFact.cc:37`, where it became clear that the crash was due to `CustomPlugin` not overriding `QGCCorePlugin::instance()`[^2].
 
+> [!CAUTION]
+> The QGC-Herelink project made changes in QGC's source code to create and connect their own `VideoStreamControl`, specifically in `src/VideoManager/VideoManager{.h, .cc}`.
+> I am unsure as to whether this is necessary for the port... stay tuned&trade;.
+
 ## Configuring for Android
 - QGroundControl 5 migrated to pure CMake, so we'll try and do the same, instead of going down a rabbit hole with Qt Creator.
     - After installing the Android toolchain along with NDK r26b and build-tools 26.3, everything seemed OK, but the project has one last error up its sleeve&mdash;Qt6LinguistTools could apparently not be located! After some hair-tearing, I finally found the fix: Including LinguistTools by themselves in QGC's `CMakeLists.txt` fixed the problem.

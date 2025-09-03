@@ -47,39 +47,39 @@ set(
     CACHE STRING "Extra QML import paths" FORCE
 )
 
-qt_add_library(CustomModule STATIC)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/res/FlyViewCustomLayer.qml PROPERTIES
+    QT_RESOURCE_ALIAS QGroundControl/FlightDisplay/FlyViewCustomLayer.qml
+)
 
-target_link_libraries(CustomModule PUBLIC Qt6::Core)
-target_include_directories(CustomModule PUBLIC include)
-
-# set_source_files_properties(res/FlyViewCustomLayer.qml PROPERTIES
-#     QT_RESOURCE_ALIAS QGroundControl/FlightDisplay/FlyViewCustomLayer.qml
-# )
-#
-# set_source_files_properties(res/GeoWorkSettingsPanel.qml PROPERTIES
-#     QT_RESOURCE_ALIAS GeoWorkSettingsPanel.qml
-# )
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/res/GeoWorkSettingsPanel.qml PROPERTIES
+    QT_RESOURCE_ALIAS QGroundControl/FlightDisplay/GeoWorkSettingsPanel.qml
+)
 
 qt_add_qml_module(CustomModule
     URI Custom.Widgets
     VERSION 1.0
     RESOURCE_PREFIX /qml
     QML_FILES
+       ${CMAKE_CURRENT_LIST_DIR}/res/FlyViewCustomLayer.qml
+       ${CMAKE_CURRENT_LIST_DIR}/res/GeoWorkSettingsPanel.qml
     NO_PLUGIN
 )
+
 
 # NOTE: Headers need to be included as well in order for
 # Qt's MOC to do its job correctly--do not remove!
 set(CUSTOM_SOURCES
-    # ${CMAKE_CURRENT_LIST_DIR}/include/GeoWork.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/GeoWork.h
     ${CMAKE_CURRENT_LIST_DIR}/include/HerelinkCorePlugin.h
     ${CMAKE_CURRENT_LIST_DIR}/include/HerelinkOptions.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/UrlInterceptor.h
     ${CMAKE_CURRENT_LIST_DIR}/include/VideoStreamControl.h
 
-    # ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork.cc
-    # ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork_qmlinit.cc
+    ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork.cc
+    ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork_qmlinit.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/HerelinkCorePlugin.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/HerelinkOptions.cc
+    ${CMAKE_CURRENT_LIST_DIR}/src/UrlInterceptor.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/VideoStreamControl.cc
 
     CACHE INTERNAL "" FORCE

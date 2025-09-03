@@ -1,6 +1,7 @@
 #pragma once
 
-#include <HerelinkOptions.h>
+#include "HerelinkOptions.h"
+#include "UrlInterceptor.h"
 
 #include <QGCApplication.h>
 #include <QGCCorePlugin.h>
@@ -20,14 +21,20 @@ public:
     static QGCCorePlugin* instance();
     QGCOptions*           options() final;
 
+    void cleanup() final;
+
     constexpr bool isHerelink(void) const { return true; }
 
     bool overrideSettingsGroupVisibility(const QString& name) final;
     bool adjustSettingMetaData(const QString& settingsGroup, FactMetaData& metaData) final;
 
+    QQmlApplicationEngine* createQmlApplicationEngine(QObject* parent) final;
+
 private slots:
     void activeVehicleChanged(Vehicle* activeVehicle);
 
 private:
-    HerelinkOptions _herelinkOptions;
+    HerelinkOptions        m_herelinkOptions;
+    UrlInterceptor*        m_interceptor;
+    QQmlApplicationEngine* m_qmlEngine;
 };
