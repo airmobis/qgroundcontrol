@@ -66,7 +66,7 @@ GeoWork::TokenStatus GeoWork::tokenStatus() const { return _tokenStatus; }
 
 QByteArray GeoWork::authHeader() const {
     if (_bearerToken.isEmpty()) {
-        return QByteArray();
+        return QByteArray {};
     }
 
     QString t { _bearerToken.trimmed() };

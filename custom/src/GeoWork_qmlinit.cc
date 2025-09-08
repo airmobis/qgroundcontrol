@@ -11,8 +11,10 @@ static void initGeoWorkQml() {
     qmlRegisterSingletonType<GeoWork>(
         "GeoWork", 1, 0, "GeoWork",
         [](QQmlEngine*, QJSEngine*) -> QObject* {
-            static GeoWork instance;
-            return &instance;
+            // WARNING Leave this instance heap-allocated;
+            // Qt manually deletes these things.
+            static GeoWork* instance { new GeoWork {} };
+            return instance;
         }
     );
 

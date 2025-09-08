@@ -6,9 +6,8 @@
 #include "JoystickManager.h"
 #include "MultiVehicleManager.h"
 #include "QGCApplication.h"
+#include "QGCCorePlugin.h"
 #include "VideoSettings.h"
-
-#include <QQmlApplicationEngine>
 
 QGC_LOGGING_CATEGORY(HerelinkCorePluginLog, "HerelinkCorePluginLog")
 
@@ -16,8 +15,10 @@ Q_APPLICATION_STATIC(HerelinkCorePlugin, m_customPluginInstance);
 
 HerelinkCorePlugin::HerelinkCorePlugin(QObject* parent)
     : QGCCorePlugin { parent }
-    , m_herelinkOptions { this, parent } {
-    qCDebug(HerelinkCorePluginLog) << "[HERELINK] HerelinkCorePlugin::HerelinkCorePlugin() called";
+    , m_herelinkOptions { this, parent }
+    , m_qml { nullptr }
+    , m_url { nullptr } {
+    // qCDebug(HerelinkCorePluginLog) << "[HERELINK] HerelinkCorePlugin::HerelinkCorePlugin() called";
 }
 
 QGCCorePlugin* HerelinkCorePlugin::instance() {
@@ -29,11 +30,21 @@ QGCOptions* HerelinkCorePlugin::options() {
 }
 
 void HerelinkCorePlugin::cleanup() {
-    if (m_qmlEngine != nullptr) {
-        m_qmlEngine->removeUrlInterceptor(m_interceptor);
+    if (m_qml != nullptr) {
+        m_qml->removeUrlInterceptor(m_url);
     }
 
-    delete m_interceptor;
+    delete m_url;
+}
+
+QQmlApplicationEngine* HerelinkCorePlugin::createQmlApplicationEngine(QObject* parent) {
+    m_qml = QGCCorePlugin::createQmlApplicationEngine(parent);
+    m_qml->addImportPath("qrc:/Custom");
+
+    m_url = new UrlInterceptor {};
+    m_qml->addUrlInterceptor(m_url);
+
+    return m_qml;
 }
 
 bool HerelinkCorePlugin::overrideSettingsGroupVisibility(const QString& name) {
@@ -42,7 +53,7 @@ bool HerelinkCorePlugin::overrideSettingsGroupVisibility(const QString& name) {
 }
 
 bool HerelinkCorePlugin::adjustSettingMetaData(const QString& settingsGroup, FactMetaData& metaData) {
-    qCDebug(HerelinkCorePluginLog) << "[HERELINK] HerelinkCorePlugin::adjustSettingMetaData() called";
+    // qCDebug(HerelinkCorePluginLog) << "[HERELINK] HerelinkCorePlugin::adjustSettingMetaData() called";
 
     if (settingsGroup == AppSettings::settingsGroup) {
         // Default Herelink font size of 10, nice starting point.
@@ -100,20 +111,8 @@ bool HerelinkCorePlugin::adjustSettingMetaData(const QString& settingsGroup, Fac
     return true;
 }
 
-QQmlApplicationEngine* HerelinkCorePlugin::createQmlApplicationEngine(QObject* parent) {
-    qCDebug(HerelinkCorePluginLog) << "[HERELINK] HerelinkCorePlugin::createQmlApplicationEngine() called";
-
-    m_qmlEngine = QGCCorePlugin::createQmlApplicationEngine(parent);
-    m_qmlEngine->addImportPath("qrc:/Custom/Widgets");
-
-    m_interceptor = new UrlInterceptor();
-    m_qmlEngine->addUrlInterceptor(m_interceptor);
-
-    return m_qmlEngine;
-}
-
 void HerelinkCorePlugin::activeVehicleChanged(Vehicle* activeVehicle) {
-    qCDebug(HerelinkCorePluginLog) << "[HERELINK] HerelinkCorePlugin::activeVehicleChanged() called";
+    // qCDebug(HerelinkCorePluginLog) << "[HERELINK] HerelinkCorePlugin::activeVehicleChanged() called";
 
     if (activeVehicle == nullptr) {
         return;

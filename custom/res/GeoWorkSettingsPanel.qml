@@ -1,9 +1,9 @@
 // GeoWorkSettingsPanel.qml
-import QtQuick 2.12
-import QtQuick.Controls 2.4
-import QtQuick.Layouts 1.12
-import QtQuick.Dialogs 1.3
-import GeoWork 1.0
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+import QtQuick.Dialogs
+import GeoWork
 
 Item {
     id: panel
@@ -63,13 +63,13 @@ Item {
                     text: "Token status:"
                 }
                 Rectangle {
-                    width: 40
-                    height: 40
+                    implicitWidth: 40
+                    implicitHeight: 40
                     radius: 5
                     border.width: 1
                     color: GeoWork.tokenStatus === 1 ? "#21A366"   // green
-                     : GeoWork.tokenStatus === 2 ? "#D13438"   // red
-                     : "#A0A0A0"                               // grey
+                    : GeoWork.tokenStatus === 2 ? "#D13438"   // red
+                    : "#A0A0A0"                               // grey
                 }
                 Item {
                     Layout.fillWidth: true
@@ -142,9 +142,8 @@ Item {
     FileDialog {
         id: tokenChooser
         title: "Select Geowork token file"
-        selectExisting: true
         onAccepted: {
-            panel.pickedFileUrl = fileUrl;
+            panel.pickedFileUrl = selectedFile;
             if (GeoWork.setBearerTokenFromFile(fileUrl)) {
                 GeoWork.validateToken();  // sets GeoWork.tokenStatus
                 var nm = GeoWork.deviceName && GeoWork.deviceName.length ? GeoWork.deviceName : "BLUE001";

@@ -7,27 +7,21 @@
  *
  ****************************************************************************/
 
-import QtQuick 2.12
-import QtQuick.Controls 2.4
-import QtQuick.Dialogs 1.3
-import QtQuick.Layouts 1.12
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Window
 
-import QtLocation 5.3
-import QtPositioning 5.3
-import QtQuick.Window 2.2
-import QtQml.Models 2.1
+import QGroundControl
+import QGroundControl.Controllers
+import QGroundControl.Controls
+import QGroundControl.FactSystem
+import QGroundControl.FlightDisplay
+import QGroundControl.FlightMap
+import QGroundControl.Palette
+import QGroundControl.ScreenTools
+import QGroundControl.Vehicle
 
-import QGroundControl 1.0
-import QGroundControl.Controllers 1.0
-import QGroundControl.Controls 1.0
-import QGroundControl.FactSystem 1.0
-import QGroundControl.FlightDisplay 1.0
-import QGroundControl.FlightMap 1.0
-import QGroundControl.Palette 1.0
-import QGroundControl.ScreenTools 1.0
-import QGroundControl.Vehicle 1.0
-
-import GeoWork 1.0
+import GeoWork
 
 Item {
     id: airmobisRoot
@@ -35,23 +29,23 @@ Item {
     // These mirror the stock layer API expected by FlyView.qml
     property var parentToolInsets               // Provided by parent.
     property var totalToolInsets: airmobisRootToolInsets   // Overlay exposes its insets back to parent.
-    property var mapcontrol                     // Provided by parent.
+    property var mapControl                     // Provided by parent.
 
     // Pass-through insets object
     QGCToolInsets {
         id: airmobisRootToolInsets
-        leftEdgeTopInset: parentToolInsets.leftEdgeTopInset
-        leftEdgeCenterInset: parentToolInsets.leftEdgeCenterInset
-        leftEdgeBottomInset: parentToolInsets.leftEdgeBottomInset
-        rightEdgeTopInset: parentToolInsets.rightEdgeTopInset
-        rightEdgeCenterInset: parentToolInsets.rightEdgeCenterInset
-        rightEdgeBottomInset: parentToolInsets.rightEdgeBottomInset
-        topEdgeLeftInset: parentToolInsets.topEdgeLeftInset
-        topEdgeCenterInset: parentToolInsets.topEdgeCenterInset
-        topEdgeRightInset: parentToolInsets.topEdgeRightInset
-        bottomEdgeLeftInset: parentToolInsets.bottomEdgeLeftInset
-        bottomEdgeCenterInset: parentToolInsets.bottomEdgeCenterInset
-        bottomEdgeRightInset: parentToolInsets.bottomEdgeRightInset
+        leftEdgeTopInset: airmobisRoot.parentToolInsets.leftEdgeTopInset
+        leftEdgeCenterInset: airmobisRoot.parentToolInsets.leftEdgeCenterInset
+        leftEdgeBottomInset: airmobisRoot.parentToolInsets.leftEdgeBottomInset
+        rightEdgeTopInset: airmobisRoot.parentToolInsets.rightEdgeTopInset
+        rightEdgeCenterInset: airmobisRoot.parentToolInsets.rightEdgeCenterInset
+        rightEdgeBottomInset: airmobisRoot.parentToolInsets.rightEdgeBottomInset
+        topEdgeLeftInset: airmobisRoot.parentToolInsets.topEdgeLeftInset
+        topEdgeCenterInset: airmobisRoot.parentToolInsets.topEdgeCenterInset
+        topEdgeRightInset: airmobisRoot.parentToolInsets.topEdgeRightInset
+        bottomEdgeLeftInset: airmobisRoot.parentToolInsets.bottomEdgeLeftInset
+        bottomEdgeCenterInset: airmobisRoot.parentToolInsets.bottomEdgeCenterInset
+        bottomEdgeRightInset: airmobisRoot.parentToolInsets.bottomEdgeRightInset
     }
 
     Component.onCompleted: {
@@ -87,11 +81,11 @@ Item {
         id: airmobisRootGeoPanel
         anchors.fill: airmobisRoot
         asynchronous: false
-        source: "qrc:/qml/QGroundControl/FlightDisplay/GeoWorkSettingsPanel.qml"
+        source: "qrc:/Custom/GeoWork/GeoWorkSettingsPanel.qml"
         onStatusChanged: {
             console.log("[geowork][qml] loader status:", status);
             if (status === Loader.Ready && item) {
-                item.anchors.fill = airmobisRoot;
+                // item.anchors.fill = airmobisRoot;
                 item.visible = false;
                 console.log("[GeoWork] Settings panel loaded");
             } else if (status === Loader.Error) {

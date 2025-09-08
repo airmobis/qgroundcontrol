@@ -48,37 +48,36 @@ set(
 )
 
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/res/FlyViewCustomLayer.qml PROPERTIES
-    QT_RESOURCE_ALIAS QGroundControl/FlightDisplay/FlyViewCustomLayer.qml
+    QT_RESOURCE_ALIAS FlyViewCustomLayer.qml
 )
 
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/res/GeoWorkSettingsPanel.qml PROPERTIES
-    QT_RESOURCE_ALIAS QGroundControl/FlightDisplay/GeoWorkSettingsPanel.qml
+    QT_RESOURCE_ALIAS GeoWorkSettingsPanel.qml
 )
 
 qt_add_qml_module(CustomModule
-    URI Custom.Widgets
+    URI Custom
     VERSION 1.0
     RESOURCE_PREFIX /qml
     QML_FILES
-       ${CMAKE_CURRENT_LIST_DIR}/res/FlyViewCustomLayer.qml
-       ${CMAKE_CURRENT_LIST_DIR}/res/GeoWorkSettingsPanel.qml
+        ${CMAKE_CURRENT_LIST_DIR}/res/FlyViewCustomLayer.qml
+        ${CMAKE_CURRENT_LIST_DIR}/res/GeoWorkSettingsPanel.qml
     NO_PLUGIN
 )
 
-
-# NOTE: Headers need to be included as well in order for
+# WARNING Headers need to be included as well in order for
 # Qt's MOC to do its job correctly--do not remove!
 set(CUSTOM_SOURCES
-    ${CMAKE_CURRENT_LIST_DIR}/include/GeoWork.h
     ${CMAKE_CURRENT_LIST_DIR}/include/HerelinkCorePlugin.h
     ${CMAKE_CURRENT_LIST_DIR}/include/HerelinkOptions.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/GeoWork.h
     ${CMAKE_CURRENT_LIST_DIR}/include/UrlInterceptor.h
     ${CMAKE_CURRENT_LIST_DIR}/include/VideoStreamControl.h
 
-    ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork.cc
-    ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork_qmlinit.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/HerelinkCorePlugin.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/HerelinkOptions.cc
+    ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork.cc
+    ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork_qmlinit.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/UrlInterceptor.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/VideoStreamControl.cc
 
@@ -86,7 +85,7 @@ set(CUSTOM_SOURCES
 )
 
 # Explicitly link QML module, needed by Qt 6.6.3
-# TODO: Remove when support for this version is dropped
+# TODO Remove when support for this version is dropped
 set(CUSTOM_LIBRARIES
     CustomModule
     CACHE INTERNAL "[Custom] Libraries to link" FORCE
