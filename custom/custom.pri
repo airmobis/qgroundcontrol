@@ -3,9 +3,9 @@ message("Adding Custom Herelink Plugin")
 #-- Version control
 #   Major and minor versions are defined here (manually)
 
-CUSTOM_QGC_VER_MAJOR = 4
-CUSTOM_QGC_VER_MINOR = 4
-CUSTOM_QGC_VER_PATCH = 2
+CUSTOM_QGC_VER_MAJOR = 5
+CUSTOM_QGC_VER_MINOR = 0
+CUSTOM_QGC_VER_PATCH = 6
 CUSTOM_QGC_VER_FIRST_BUILD = 0
 
 linux {
