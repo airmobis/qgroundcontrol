@@ -664,7 +664,7 @@ void VideoManager::_startReceiver(VideoReceiver *receiver)
     /* The gstreamer rtsp source will switch to tcp if udp is not available after 5 seconds.
        So we should allow for some negotiation time for rtsp */
 
-    const uint32_t timeout = ((source == VideoSettings::videoSourceRTSP) ? _videoSettings->rtspTimeout()->rawValue().toUInt() : 3);
+    const uint32_t timeout = ((source == VideoSettings::videoSourceRTSP) ? _videoSettings->rtspTimeout()->rawValue().toUInt() : 15);
 
     receiver->start(timeout);
 }
