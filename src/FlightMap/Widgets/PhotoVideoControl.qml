@@ -34,6 +34,7 @@ Rectangle {
     property var    _activeVehicle:             globals.activeVehicle
     property var    _cameraManager:             _activeVehicle.cameraManager
     property var    _camera:                    _cameraManager.currentCameraInstance
+    property var    _videoStreamSettings:       QGroundControl.settingsManager.videoSettings
     property bool   _cameraInPhotoMode:         _camera.cameraMode === MavlinkCameraControl.CAM_MODE_PHOTO
     property bool   _cameraInVideoMode:         !_cameraInPhotoMode
     property bool   _videoCaptureIdle:          _camera.videoCaptureStatus === MavlinkCameraControl.VIDEO_CAPTURE_STATUS_STOPPED
@@ -114,10 +115,12 @@ Rectangle {
                 GridLayout {
                     id:     gridLayout
                     flow:   GridLayout.TopToBottom
-                    rows:   dynamicRows + (_mavlinkCamera ? _mavlinkCamera.activeSettings.length : 0)
+                    rows:   1 + _camera.activeSettings.length
 
-                // Photo/Video Mode Selector
-                Rectangle {
+                    property int dynamicRows: 1
+
+                    // Photo/Video Mode Selector
+                    Rectangle {
                     Layout.alignment:   Qt.AlignHCenter
                     width:              ScreenTools.defaultFontPixelWidth * 10
                     height:             width / 2
@@ -284,6 +287,7 @@ Rectangle {
                         visible:            _camera.batteryRemaining >= 0
                     }
                 }
+            }
             }
 
             ColumnLayout {

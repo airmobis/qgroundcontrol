@@ -4,33 +4,33 @@
 #include "VideoSettings.h"
 #include "AppSettings.h"
 #include "QGCApplication.h"
-#include "QGCToolbox.h"
 #include "MultiVehicleManager.h"
 #include "JoystickManager.h"
 #include "HorizontalFactValueGrid.h"
 #include "InstrumentValueData.h"
+#include "FactValueGrid.h"
 
 #include <list>
 
 QGC_LOGGING_CATEGORY(HerelinkCorePluginLog, "HerelinkCorePluginLog")
 
-HerelinkCorePlugin::HerelinkCorePlugin(QGCApplication *app, QGCToolbox* toolbox)
-    : QGCCorePlugin(app, toolbox)
+HerelinkCorePlugin* HerelinkCorePlugin::instance()
 {
-
+    return _herelinkCorePluginInstance();
 }
 
-void HerelinkCorePlugin::setToolbox(QGCToolbox* toolbox)
+HerelinkCorePlugin::HerelinkCorePlugin(QObject* parent)
+    : QGCCorePlugin(parent)
 {
-    QGCCorePlugin::setToolbox(toolbox);
-
     _herelinkOptions = new HerelinkOptions(this, nullptr);
 
-    auto multiVehicleManager = qgcApp()->toolbox()->multiVehicleManager();
-    connect(multiVehicleManager, &MultiVehicleManager::activeVehicleChanged, this, &HerelinkCorePlugin::_activeVehicleChanged);
+    // TODO: We may need to connect to signals here instead of setToolbox
+    // auto multiVehicleManager = qgcApp()->toolbox()->multiVehicleManager();
+    // connect(multiVehicleManager, &MultiVehicleManager::activeVehicleChanged, this, &HerelinkCorePlugin::_activeVehicleChanged);
 }
 
-bool HerelinkCorePlugin::overrideSettingsGroupVisibility(QString name)
+
+bool HerelinkCorePlugin::overrideSettingsGroupVisibility(const QString& name)
 {
     // Hide all AutoConnect settings
     return name != AutoConnectSettings::name;
@@ -68,7 +68,6 @@ bool HerelinkCorePlugin::adjustSettingMetaData(const QString& settingsGroup, Fac
             const std::list<const char *> disabledAndHiddenSettings = {
                 AutoConnectSettings::autoConnectPixhawkName,
                 AutoConnectSettings::autoConnectSiKRadioName,
-                AutoConnectSettings::autoConnectPX4FlowName,
                 AutoConnectSettings::autoConnectRTKGPSName,
                 AutoConnectSettings::autoConnectLibrePilotName,
                 AutoConnectSettings::autoConnectNmeaPortName,
@@ -100,7 +99,7 @@ void HerelinkCorePlugin::_activeVehicleChanged(Vehicle* activeVehicle)
     if (activeVehicle) {
         QString herelinkButtonsJoystickName("gpio-keys");
 
-        auto joystickManager = qgcApp()->toolbox()->joystickManager();
+        auto joystickManager = JoystickManager::instance();
         if (joystickManager->activeJoystickName() != herelinkButtonsJoystickName) {
             if (!joystickManager->setActiveJoystickName(herelinkButtonsJoystickName)) {
                 qgcApp()->showAppMessage("Warning: Herelink buttton setup failed. Buttons will not work.");
@@ -112,24 +111,22 @@ void HerelinkCorePlugin::_activeVehicleChanged(Vehicle* activeVehicle)
 }
 
 // Same as original, only we set font size to medium by default for Herelink
-void HerelinkCorePlugin::factValueGridCreateDefaultSettings(const QString& defaultSettingsGroup)
+void HerelinkCorePlugin::factValueGridCreateDefaultSettings(FactValueGrid* factValueGrid)
 {
-    HorizontalFactValueGrid factValueGrid(defaultSettingsGroup);
+    bool        includeFWValues = factValueGrid->vehicleClass() == QGCMAVLink::VehicleClassFixedWing || factValueGrid->vehicleClass() == QGCMAVLink::VehicleClassVTOL || factValueGrid->vehicleClass() == QGCMAVLink::VehicleClassAirship;
 
-    bool        includeFWValues = factValueGrid.vehicleClass() == QGCMAVLink::VehicleClassFixedWing || factValueGrid.vehicleClass() == QGCMAVLink::VehicleClassVTOL || factValueGrid.vehicleClass() == QGCMAVLink::VehicleClassAirship;
+    factValueGrid->setFontSize(FactValueGrid::MediumFontSize);
 
-    factValueGrid.setFontSize(FactValueGrid::MediumFontSize);
-
-    factValueGrid.appendColumn();
-    factValueGrid.appendColumn();
-    factValueGrid.appendColumn();
+    factValueGrid->appendColumn();
+    factValueGrid->appendColumn();
+    factValueGrid->appendColumn();
     if (includeFWValues) {
-        factValueGrid.appendColumn();
+        factValueGrid->appendColumn();
     }
-    factValueGrid.appendRow();
+    factValueGrid->appendRow();
 
     int                 rowIndex    = 0;
-    QmlObjectListModel* column      = factValueGrid.columns()->value<QmlObjectListModel*>(0);
+    QmlObjectListModel* column      = factValueGrid->columns()->value<QmlObjectListModel*>(0);
 
     InstrumentValueData* value = column->value<InstrumentValueData*>(rowIndex++);
     value->setFact("Vehicle", "AltitudeRelative");
@@ -144,7 +141,7 @@ void HerelinkCorePlugin::factValueGridCreateDefaultSettings(const QString& defau
     value->setShowUnits(true);
 
     rowIndex    = 0;
-    column      = factValueGrid.columns()->value<QmlObjectListModel*>(1);
+    column      = factValueGrid->columns()->value<QmlObjectListModel*>(1);
 
     value = column->value<InstrumentValueData*>(rowIndex++);
     value->setFact("Vehicle", "ClimbRate");
@@ -161,7 +158,7 @@ void HerelinkCorePlugin::factValueGridCreateDefaultSettings(const QString& defau
 
     if (includeFWValues) {
         rowIndex    = 0;
-        column      = factValueGrid.columns()->value<QmlObjectListModel*>(2);
+        column      = factValueGrid->columns()->value<QmlObjectListModel*>(2);
 
         value = column->value<InstrumentValueData*>(rowIndex++);
         value->setFact("Vehicle", "AirSpeed");
@@ -175,7 +172,7 @@ void HerelinkCorePlugin::factValueGridCreateDefaultSettings(const QString& defau
     }
 
     rowIndex    = 0;
-    column      = factValueGrid.columns()->value<QmlObjectListModel*>(includeFWValues ? 3 : 2);
+    column      = factValueGrid->columns()->value<QmlObjectListModel*>(includeFWValues ? 3 : 2);
 
     value = column->value<InstrumentValueData*>(rowIndex++);
     value->setFact("Vehicle", "FlightTime");

@@ -160,19 +160,25 @@ endif()
 #               Qt6 Configuration
 #######################################################
 
-# The values specified below are the ONLY supported configurations for this version of QGC. 
-# Change these to something else at your own risk. Anything other than what is specified 
+# The values specified below are the ONLY supported configurations for this version of QGC.
+# Change these to something else at your own risk. Anything other than what is specified
 # here is unsupported so don't expect any help with problems.
 
+message(STATUS "QGC_ENABLE_HERELINK: ${QGC_ENABLE_HERELINK}")
+message(STATUS "ANDROID: ${ANDROID}")
 if(QGC_ENABLE_HERELINK AND ANDROID)
+    message(STATUS "set to 6.6.3 here")
     set(QGC_QT_MINIMUM_VERSION "6.6.3" CACHE STRING "Minimum Supported Qt Version")
     set(QGC_QT_MAXIMUM_VERSION "6.6.3" CACHE STRING "Maximum Supported Qt Version")
     set(QGC_QT_ANDROID_MIN_SDK_VERSION "25" CACHE STRING "Android Min SDK Version")
 else()
+    message(STATUS "set to 6.8.3 here")
     set(QGC_QT_MINIMUM_VERSION "6.8.3" CACHE STRING "Minimum Supported Qt Version")
     set(QGC_QT_MAXIMUM_VERSION "6.8.3" CACHE STRING "Maximum Supported Qt Version")
     set(QGC_QT_ANDROID_MIN_SDK_VERSION "28" CACHE STRING "Android Min SDK Version")
 endif()
+
+message(STATUS "VERSION wanted: ${QGC_QT_MINIMUM_VERSION}..${QGC_QT_MAXIMUM_VERSION}")
 
 find_package(Qt6
     ${QGC_QT_MINIMUM_VERSION}...${QGC_QT_MAXIMUM_VERSION}

@@ -2,10 +2,12 @@
 
 #include "HerelinkOptions.h"
 
+#include "QGCApplication.h"
 #include "QGCCorePlugin.h"
 #include "QGCLoggingCategory.h"
 
 #include <QObject>
+#include <QtCore/qapplicationstatic.h>
 
 Q_DECLARE_LOGGING_CATEGORY(HerelinkCorePluginLog)
 
@@ -14,19 +16,19 @@ class HerelinkCorePlugin : public QGCCorePlugin
     Q_OBJECT
 
 public:
-    HerelinkCorePlugin(QGCApplication* app, QGCToolbox* toolbox);
+    HerelinkCorePlugin(QObject* parent = nullptr);
+
+    static HerelinkCorePlugin* instance();
 
     Q_PROPERTY(bool isHerelink READ isHerelink CONSTANT)
     bool isHerelink (void) const { return true; }
 
     // Overrides from QGCCorePlugin
     QGCOptions* options                                (void) override { return qobject_cast<QGCOptions*>(_herelinkOptions); }
-    bool        overrideSettingsGroupVisibility        (QString name) override;
+    bool        overrideSettingsGroupVisibility        (const QString& name) override;
     bool        adjustSettingMetaData                  (const QString& settingsGroup, FactMetaData& metaData) override;
-    void        factValueGridCreateDefaultSettings     (const QString& defaultSettingsGroup) override;
+    void        factValueGridCreateDefaultSettings     (FactValueGrid* factValueGrid) override;
 
-    // Overrides from QGCTool
-    void setToolbox(QGCToolbox* toolbox) override;
 
 private slots:
     void _activeVehicleChanged(Vehicle* activeVehicle);
@@ -34,3 +36,5 @@ private slots:
 private:
     HerelinkOptions* _herelinkOptions = nullptr;
 };
+
+Q_APPLICATION_STATIC(HerelinkCorePlugin, _herelinkCorePluginInstance);
