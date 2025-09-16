@@ -75,7 +75,11 @@ void VideoSettings::_setDefaults()
     if (_noVideo) {
         _nameToMetaDataMap[videoSourceName]->setRawDefaultValue(videoSourceNoVideo);
     } else {
+#ifdef QGC_HERELINK_AIRUNIT_VIDEO
+        _nameToMetaDataMap[videoSourceName]->setRawDefaultValue(videoSourceHerelinkAirUnit);
+#else
         _nameToMetaDataMap[videoSourceName]->setRawDefaultValue(videoDisabled);
+#endif
     }
 }
 

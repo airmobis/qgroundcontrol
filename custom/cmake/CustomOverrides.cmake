@@ -6,3 +6,6 @@ set(QGC_ORG_NAME "Cubepilot")
 set(QGC_QT_ANDROID_MIN_SDK_VERSION "25")
 set(QGC_QT_ANDROID_TARGET_SDK_VERSION "25")
 set(QGC_ENABLE_HERELINK ON)
+
+# Add Herelink AirUnit video configuration
+add_compile_definitions(QGC_HERELINK_AIRUNIT_VIDEO)
