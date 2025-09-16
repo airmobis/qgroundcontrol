@@ -23,6 +23,7 @@ class SubtitleWriter;
 class Vehicle;
 class VideoReceiver;
 class VideoSettings;
+class VideoStreamControl;
 
 class VideoManager : public QObject
 {
@@ -30,6 +31,9 @@ class VideoManager : public QObject
     // QML_ELEMENT
     // QML_UNCREATABLE("")
     Q_MOC_INCLUDE("Vehicle.h")
+#ifdef QGC_HERELINK_AIRUNIT_VIDEO
+    Q_MOC_INCLUDE("VideoStreamControl.h")
+#endif
     Q_PROPERTY(bool     gstreamerEnabled        READ gstreamerEnabled                           CONSTANT)
     Q_PROPERTY(bool     qtmultimediaEnabled     READ qtmultimediaEnabled                        CONSTANT)
     Q_PROPERTY(bool     uvcEnabled              READ uvcEnabled                                 CONSTANT)
@@ -49,6 +53,9 @@ class VideoManager : public QObject
     Q_PROPERTY(QSize    videoSize               READ videoSize                                  NOTIFY videoSizeChanged)
     Q_PROPERTY(QString  imageFile               READ imageFile                                  NOTIFY imageFileChanged)
     Q_PROPERTY(QString  uvcVideoSourceID        READ uvcVideoSourceID                           NOTIFY uvcVideoSourceIDChanged)
+#ifdef QGC_HERELINK_AIRUNIT_VIDEO
+    Q_PROPERTY(VideoStreamControl* videoStreamControl      READ videoStreamControl                         CONSTANT)
+#endif
 
 public:
     explicit VideoManager(QObject *parent = nullptr);
@@ -81,6 +88,9 @@ public:
     QSize videoSize() const { return _videoSize; }
     QString imageFile() const { return _imageFile; }
     QString uvcVideoSourceID() const { return _uvcVideoSourceID; }
+#ifdef QGC_HERELINK_AIRUNIT_VIDEO
+    VideoStreamControl* videoStreamControl() const { return _videoStreamControl; }
+#endif
     void setfullScreen(bool on);
     static bool gstreamerEnabled();
     static bool qtmultimediaEnabled();
@@ -123,6 +133,7 @@ private:
 
     SubtitleWriter *_subtitleWriter = nullptr;
     VideoSettings *_videoSettings = nullptr;
+    VideoStreamControl *_videoStreamControl = nullptr;
 
     bool _initialized = false;
     bool _fullScreen = false;

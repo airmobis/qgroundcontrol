@@ -90,29 +90,6 @@ Rectangle {
                 }
 
                 GridLayout {
-                    Layout.margins: ScreenTools.defaultFontPixelWidth
-                    columns:        3
-                    visible:        QGroundControl.corePlugin.isHerelink
-
-                    QGCLabel {
-                        text:               qsTr("video source used: HDMI ") + (_videoStreamSettings.cameraId.rawValue + 1)
-                        Layout.columnSpan:  3
-                    }
-                    QGCLabel {
-                        text:               qsTr("Select: ")
-                    }
-                    QGCButton {
-                        text:               qsTr("HDMI 1")
-                        enabled:            !QGroundControl.videoManager.videoStreamControl.settingInProgress
-                        onClicked:          _videoStreamSettings.cameraId.rawValue = 0
-                    }
-                    QGCButton {
-                        text:               qsTr("HDMI 2")
-                        enabled:            !QGroundControl.videoManager.videoStreamControl.settingInProgress
-                        onClicked:          _videoStreamSettings.cameraId.rawValue = 1
-                    }
-                }
-                GridLayout {
                     id:     gridLayout
                     flow:   GridLayout.TopToBottom
                     rows:   1 + _camera.activeSettings.length
@@ -370,7 +347,7 @@ Rectangle {
                         flow:   GridLayout.TopToBottom
                         rows:   dynamicRows + _camera.activeSettings.length
 
-                        property int dynamicRows: 10
+                        property int dynamicRows: 11
 
                         // First column
                         QGCLabel {
@@ -404,6 +381,12 @@ Rectangle {
                             QGCLabel {
                                 text: _camera.getFact(modelData).shortDescription
                             }
+                        }
+
+                        QGCLabel {
+                            text:               qsTr("HDMI Input")
+                            visible:            QGroundControl.corePlugin.isHerelink
+                            onVisibleChanged:   gridLayout.dynamicRows += visible ? 1 : -1
                         }
 
                         QGCLabel {
@@ -531,6 +514,23 @@ Rectangle {
                                     visible:    parent._isBool
                                     onClicked:  parent._fact.value = checked ? 1 : 0
                                 }
+                            }
+                        }
+
+                        Row {
+                            spacing: ScreenTools.defaultFontPixelWidth / 2
+                            visible: QGroundControl.corePlugin.isHerelink
+
+                            QGCButton {
+                                text: qsTr("HDMI 1")
+                                enabled: !QGroundControl.videoManager.videoStreamControl.settingInProgress
+                                onClicked: _videoStreamSettings.cameraId.rawValue = 0
+                            }
+
+                            QGCButton {
+                                text: qsTr("HDMI 2")
+                                enabled: !QGroundControl.videoManager.videoStreamControl.settingInProgress
+                                onClicked: _videoStreamSettings.cameraId.rawValue = 1
                             }
                         }
 

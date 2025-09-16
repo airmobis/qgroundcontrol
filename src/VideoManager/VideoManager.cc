@@ -26,6 +26,9 @@
 #endif
 #include "QtMultimediaReceiver.h"
 #include "UVCReceiver.h"
+#ifdef QGC_HERELINK_AIRUNIT_VIDEO
+#include "VideoStreamControl.h"
+#endif
 
 #include <QtCore/qapplicationstatic.h>
 #include <QtCore/QDir>
@@ -48,6 +51,9 @@ VideoManager::VideoManager(QObject *parent)
     : QObject(parent)
     , _subtitleWriter(new SubtitleWriter(this))
     , _videoSettings(SettingsManager::instance()->videoSettings())
+#ifdef QGC_HERELINK_AIRUNIT_VIDEO
+    , _videoStreamControl(new VideoStreamControl())
+#endif
 {
     // qCDebug(VideoManagerLog) << this;
 
@@ -56,6 +62,12 @@ VideoManager::VideoManager(QObject *parent)
 #ifdef QGC_GST_STREAMING
     if (!GStreamer::initialize()) {
         qCCritical(VideoManagerLog) << "Failed To Initialize GStreamer";
+    }
+#endif
+
+#ifdef QGC_HERELINK_AIRUNIT_VIDEO
+    if (_videoStreamControl) {
+        (void) connect(_videoStreamControl, &VideoStreamControl::videoNeedsReset, this, &VideoManager::_restartAllVideos);
     }
 #endif
 }

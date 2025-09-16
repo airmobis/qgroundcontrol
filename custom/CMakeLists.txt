@@ -73,6 +73,8 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/HerelinkCorePlugin.json
     ${CMAKE_CURRENT_SOURCE_DIR}/src/HerelinkOptions.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/HerelinkOptions.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/herelink/VideoStreamControl.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/herelink/VideoStreamControl.h
     CACHE INTERNAL "" FORCE
 )
 
@@ -85,5 +87,6 @@ set(CUSTOM_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/AutoPilotPlugin
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FirmwarePlugin
+    ${CMAKE_CURRENT_SOURCE_DIR}/herelink
     CACHE INTERNAL "" FORCE
 )

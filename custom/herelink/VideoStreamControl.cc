@@ -1,7 +1,10 @@
 #include <QDebug>
 
 #include "LinkInterface.h"
+#include "MAVLinkProtocol.h"
 #include "QGCApplication.h"
+#include "QGCLoggingCategory.h"
+#include "SettingsManager.h"
 #include "VideoStreamControl.h"
 
 QGC_LOGGING_CATEGORY(VideoStreamControlLog, "VideoStreamControlLog")
@@ -14,10 +17,10 @@ VideoStreamControl::VideoStreamControl()
     , _cameraCount(0)
     , _settingInProgress(false)
 {
-    _mavlinkProtocol = qgcApp()->toolbox()->mavlinkProtocol();
+    _mavlinkProtocol = MAVLinkProtocol::instance();
     connect(_mavlinkProtocol, &MAVLinkProtocol::messageReceived, this, &VideoStreamControl::_mavlinkMessageReceived);
 
-    _videoSettings = qgcApp()->toolbox()->settingsManager()->videoSettings();
+    _videoSettings = SettingsManager::instance()->videoSettings();
     _cameraIdSetting = _videoSettings->cameraId()->rawValue().toUInt();
 
     connect(_videoSettings->cameraId(), &Fact::rawValueChanged, this, &VideoStreamControl::_cameraIdChanged);
@@ -118,7 +121,7 @@ void VideoStreamControl::_startVideoStreaming() {
 void VideoStreamControl::_setSettingInProgress(bool inProgress)
 {
     if (inProgress) {
-        _settingInProgressTimer.setInterval(15000);
+        _settingInProgressTimer.setInterval(5000);
         _settingInProgressTimer.setSingleShot(true);
         _settingInProgressTimer.start();
         qCDebug(VideoStreamControlLog) << "Setup timer for setting camera, and lock UI";
