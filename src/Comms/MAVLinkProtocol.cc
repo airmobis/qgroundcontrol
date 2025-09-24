@@ -115,7 +115,70 @@ void MAVLinkProtocol::receiveBytes(LinkInterface *link, const QByteArray &data)
         mavlink_message_t message{};
         mavlink_status_t status{};
 
-        if (mavlink_parse_char(mavlinkChannel, byte, &message, &status) != MAVLINK_FRAMING_OK) {
+
+        uint8_t ret = mavlink_parse_char(mavlinkChannel, byte, &message, &status);
+
+        if (status.msg_received == MAVLINK_FRAMING_INCOMPLETE && status.parse_state == MAVLINK_PARSE_STATE_GOT_BAD_CRC1) {
+            // Check for old VIDEO_STREAM_INFORMATION message and convert to new format
+            for (int i = 0; i < data.size() - 24; i++) {
+                if (data[i] == 0xFD) {  // MAVLink v2 magic byte
+                    uint8_t len = data[i + 1];
+                    uint8_t seq = data[i + 4];
+                    uint8_t sysid = data[i + 5];
+                    uint8_t compid = data[i + 6];
+                    uint16_t msgid = (data[i + 7]) | (data[i + 8] << 8) | (data[i + 9] << 16);
+
+                    if (msgid == 269 && (i + 10 + len) <= data.size()) {  // VIDEO_STREAM_INFORMATION
+                        // Extract fields from old message format (reordered by size)
+                        // Old format: bitrate(4), framerate(4), resolution_h(2), resolution_v(2), rotation(2), camera_id(1), status(1), uri(230)
+                        uint32_t bitrate = *reinterpret_cast<const uint32_t*>(data.data() + i + 10 + 0);
+                        float framerate = *reinterpret_cast<const float*>(data.data() + i + 10 + 4);
+                        uint16_t resolution_h = *reinterpret_cast<const uint16_t*>(data.data() + i + 10 + 8);
+                        uint16_t resolution_v = *reinterpret_cast<const uint16_t*>(data.data() + i + 10 + 10);
+                        uint16_t rotation = *reinterpret_cast<const uint16_t*>(data.data() + i + 10 + 12);
+                        uint8_t camera_id = data[i + 10 + 14];
+                        uint8_t status = data[i + 10 + 15];
+                        const char* uri = reinterpret_cast<const char*>(data.data() + i + 10 + 16);
+
+                        // Print the RTSP URL (null-terminated)
+                        QString uriString = QString::fromLatin1(uri).trimmed();
+                        qWarning() << QString("qgc: RTSP URI: %1").arg(uriString);
+
+                        // Create new format VIDEO_STREAM_INFORMATION message
+                        mavlink_message_t new_message{};
+                        mavlink_video_stream_information_t stream_info{};
+
+                        stream_info.stream_id = camera_id + 1;  // Convert to 1-based indexing
+                        stream_info.count = 2;  // Herelink has 2 HDMI inputs
+                        stream_info.type = 1;   // VIDEO_STREAM_TYPE_RTSP
+                        stream_info.flags = status ? 1 : 0;  // VIDEO_STREAM_STATUS_FLAGS_RUNNING
+                        stream_info.framerate = framerate;
+                        stream_info.resolution_h = resolution_h;
+                        stream_info.resolution_v = resolution_v;
+                        stream_info.bitrate = bitrate;
+                        stream_info.rotation = rotation;
+                        stream_info.hfov = 0;  // Unknown
+                        strncpy(stream_info.name, camera_id == 0 ? "HDMI 1" : "HDMI 2", sizeof(stream_info.name) - 1);
+                        // Copy URI, ensuring null termination and limiting length
+                        size_t uri_len = strnlen(uri, 230);  // Limit to original field size
+                        strncpy(stream_info.uri, uri, std::min(uri_len, sizeof(stream_info.uri) - 1));
+                        stream_info.uri[sizeof(stream_info.uri) - 1] = '\0';  // Ensure null termination
+                        stream_info.encoding = 1;  // VIDEO_STREAM_ENCODING_H264
+                        stream_info.camera_device_id = 0;
+
+                        mavlink_msg_video_stream_information_encode(sysid, compid, &new_message, &stream_info);
+                        new_message.seq = seq;
+
+                        // Pass the converted message to the existing handlers
+                        emit messageReceived(link, new_message);
+
+                        qCDebug(MAVLinkProtocolLog) << "Converted old VIDEO_STREAM_INFORMATION to new format, stream_id:" << stream_info.stream_id;
+                    }
+                }
+            }
+        }
+
+        if (ret != 1) {
             continue;
         }
 

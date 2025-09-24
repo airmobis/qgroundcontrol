@@ -676,9 +676,11 @@ void VideoManager::_startReceiver(VideoReceiver *receiver)
     /* The gstreamer rtsp source will switch to tcp if udp is not available after 5 seconds.
        So we should allow for some negotiation time for rtsp */
 
-    const uint32_t timeout = ((source == VideoSettings::videoSourceRTSP) ? _videoSettings->rtspTimeout()->rawValue().toUInt() : 15);
+    const uint32_t timeoutSeconds = ((source == VideoSettings::videoSourceRTSP) ? _videoSettings->rtspTimeout()->rawValue().toUInt() : 15);
+    const uint32_t timeoutMs = timeoutSeconds * 1000;  // Convert seconds to milliseconds
 
-    receiver->start(timeout);
+    qWarning() << "VideoManager: Starting video receiver with timeout:" << timeoutSeconds << "seconds (" << timeoutMs << "ms)";
+    receiver->start(timeoutMs);
 }
 
 void VideoManager::_initVideoReceiver(VideoReceiver *receiver, QQuickWindow *window)
@@ -727,7 +729,7 @@ void VideoManager::_initVideoReceiver(VideoReceiver *receiver, QQuickWindow *win
         if (status == VideoReceiver::STATUS_INVALID_URL) {
             qCDebug(VideoManagerLog) << "Invalid video URL. Not restarting";
         } else {
-            QTimer::singleShot(1000, receiver, [this, receiver]() {
+            QTimer::singleShot(3000, receiver, [this, receiver]() {
                 qCDebug(VideoManagerLog) << "Restarting video receiver" << receiver->name() << receiver->uri();
                 _startReceiver(receiver);
             });

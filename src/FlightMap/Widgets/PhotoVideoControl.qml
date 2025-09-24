@@ -523,14 +523,26 @@ Rectangle {
 
                             QGCButton {
                                 text: qsTr("HDMI 1")
-                                enabled: !QGroundControl.videoManager.videoStreamControl.settingInProgress
-                                onClicked: _videoStreamSettings.cameraId.rawValue = 0
+                                enabled: QGroundControl.videoManager.videoStreamControl.cameraInfoReceived && !QGroundControl.videoManager.videoStreamControl.settingInProgress && QGroundControl.videoManager.videoStreamControl.currentHdmiInput !== 0
+                                onClicked: {
+                                    console.log("HDMI 1 button clicked")
+                                    _videoStreamSettings.cameraId.rawValue = 0
+                                }
                             }
 
                             QGCButton {
                                 text: qsTr("HDMI 2")
-                                enabled: !QGroundControl.videoManager.videoStreamControl.settingInProgress
-                                onClicked: _videoStreamSettings.cameraId.rawValue = 1
+                                enabled: QGroundControl.videoManager.videoStreamControl.cameraInfoReceived && !QGroundControl.videoManager.videoStreamControl.settingInProgress && QGroundControl.videoManager.videoStreamControl.currentHdmiInput !== 1
+                                onClicked: {
+                                    console.log("HDMI 2 button clicked")
+                                    console.log("Current cameraId value:", _videoStreamSettings.cameraId.rawValue)
+                                    console.log("currentHdmiInput:", QGroundControl.videoManager.videoStreamControl.currentHdmiInput)
+                                    console.log("settingInProgress:", QGroundControl.videoManager.videoStreamControl.settingInProgress)
+                                    console.log("Button enabled:", enabled)
+                                    console.log("Setting cameraId to 1")
+                                    _videoStreamSettings.cameraId.rawValue = 1
+                                    console.log("New cameraId value:", _videoStreamSettings.cameraId.rawValue)
+                                }
                             }
                         }
 

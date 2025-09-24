@@ -662,6 +662,8 @@ GstElement *GstVideoReceiver::_makeSource(const QString &input)
             g_object_set(source,
                          "location", input.toUtf8().constData(),
                          "latency", 25,
+                         "protocols", 1,                  // UDP only (GST_RTSP_LOWER_TRANS_UDP)
+                         "udp-timeout", G_GUINT64_CONSTANT(15000000), // 15 seconds (15000000 microseconds)
                          nullptr);
         } else if (isTcpMPEGTS) {
             source = gst_element_factory_make("tcpclientsrc", "source");
@@ -802,9 +804,22 @@ GstElement *GstVideoReceiver::_makeDecoder(GstCaps *caps, GstElement *videoSink)
 {
     Q_UNUSED(caps); Q_UNUSED(videoSink)
 
-    GstElement *decoder = gst_element_factory_make("decodebin3", nullptr);
+    // Try OMX hardware decoder directly (like v4.0.8)
+    qWarning() << "GstVideoReceiver::_makeDecoder() attempting to create OMX decoder";
+    GstElement *omxDecoder = gst_element_factory_make("amcviddec-omxarmvideov5xxdecoder", "omx-decoder");
+    if (omxDecoder) {
+        qWarning() << "Successfully created OMX hardware decoder";
+        return omxDecoder;
+    } else {
+        qWarning() << "OMX decoder not available, falling back to software decoder";
+    }
+
+    // Fallback to software decoder
+    GstElement *decoder = gst_element_factory_make("avdec_h264", "h264-decoder");
     if (!decoder) {
-        qCCritical(GstVideoReceiverLog) << "gst_element_factory_make('decodebin3') failed";
+        qWarning() << "VideoReceiver::start() failed. Error with gst_element_factory_make('avdec_h264')";
+    } else {
+        qWarning() << "Using software H.264 decoder";
     }
 
     return decoder;
@@ -887,11 +902,44 @@ GstElement *GstVideoReceiver::_makeFileSink(const QString &videoFile, FILE_FORMA
 
 void GstVideoReceiver::_onNewSourcePad(GstPad *pad)
 {
-    // FIXME: check for caps - if this is not video stream (and preferably - one of these which we have to support) then simply skip it
     if (!gst_element_link(_source, _tee)) {
         qCCritical(GstVideoReceiverLog) << "Unable to link source";
         return;
     }
+
+#if 0
+    qWarning() << "GstVideoReceiver::_onNewSourcePad() called - checking pad caps";
+
+    // Check pad caps to see what we're dealing with
+    GstCaps *caps = gst_pad_query_caps(pad, nullptr);
+    if (caps) {
+        gchar *capsStr = gst_caps_to_string(caps);
+        qWarning() << "GstVideoReceiver: Source pad caps:" << capsStr;
+        g_free(capsStr);
+        gst_caps_unref(caps);
+    }
+
+    // Check if tee sink is already linked
+    GstPad *teeSink = gst_element_get_static_pad(_tee, "sink");
+    if (!teeSink) {
+        qCCritical(GstVideoReceiverLog) << "Unable to get tee sink pad";
+        return;
+    }
+
+    if (gst_pad_is_linked(teeSink)) {
+        qWarning() << "GstVideoReceiver: Tee sink already linked, ignoring additional pad";
+        gst_object_unref(teeSink);
+        return;
+    }
+
+    if (gst_pad_link(pad, teeSink) != GST_PAD_LINK_OK) {
+        qCCritical(GstVideoReceiverLog) << "Unable to link source pad to tee";
+        gst_object_unref(teeSink);
+        return;
+    }
+
+    gst_object_unref(teeSink);
+#endif
 
     if (!_streaming) {
         _streaming = true;
@@ -944,6 +992,13 @@ bool GstVideoReceiver::_addDecoder(GstElement *src)
         return false;
     }
 
+#if 0
+    // Debug: show what caps the valve is outputting
+    gchar *srcCapsStr = gst_caps_to_string(caps);
+    qWarning() << "GstVideoReceiver: Valve output caps:" << srcCapsStr;
+    g_free(srcCapsStr);
+#endif
+
     gst_clear_object(&srcpad);
 
     _decoder = _makeDecoder();
@@ -952,6 +1007,21 @@ bool GstVideoReceiver::_addDecoder(GstElement *src)
         gst_clear_caps(&caps);
         return false;
     }
+
+#if 0
+    // Query what caps the OMX decoder actually accepts
+    GstPad *decoderSink = gst_element_get_static_pad(_decoder, "sink");
+    if (decoderSink) {
+        GstCaps *decoderCaps = gst_pad_query_caps(decoderSink, nullptr);
+        if (decoderCaps) {
+            gchar *decoderCapsStr = gst_caps_to_string(decoderCaps);
+            qWarning() << "GstVideoReceiver: OMX decoder accepts caps:" << decoderCapsStr;
+            g_free(decoderCapsStr);
+            gst_caps_unref(decoderCaps);
+        }
+        gst_object_unref(decoderSink);
+    }
+#endif
 
     (void) gst_object_ref(_decoder);
 
@@ -962,8 +1032,23 @@ bool GstVideoReceiver::_addDecoder(GstElement *src)
 
     GST_DEBUG_BIN_TO_DOT_FILE(GST_BIN(_pipeline), GST_DEBUG_GRAPH_SHOW_ALL, "pipeline-with-decoder");
 
-    if (!gst_element_link(src, _decoder)) {
-        qCCritical(GstVideoReceiverLog) << "Unable to link decoder";
+    // Add h264parse to convert AVC to byte-stream format for OMX decoder
+    GstElement *h264parse = gst_element_factory_make("h264parse", nullptr);
+    if (h264parse) {
+        // Configure h264parse to output byte-stream format
+        g_object_set(h264parse, "config-interval", -1, nullptr);
+
+        gst_bin_add(GST_BIN(_pipeline), h264parse);
+        gst_element_sync_state_with_parent(h264parse);
+
+        if (!gst_element_link_many(src, h264parse, _decoder, nullptr)) {
+            qCCritical(GstVideoReceiverLog) << "Unable to link decoder with h264parse";
+            return false;
+        }
+
+        qWarning() << "GstVideoReceiver: Added h264parse to convert AVC to byte-stream for OMX decoder";
+    } else {
+        qCCritical(GstVideoReceiverLog) << "Failed to create h264parse element";
         return false;
     }
 
@@ -1246,9 +1331,13 @@ void GstVideoReceiver::_onNewPad(GstElement *element, GstPad *pad, gpointer data
 {
     GstVideoReceiver *self = static_cast<GstVideoReceiver*>(data);
 
+    qWarning() << "GstVideoReceiver::_onNewPad() called for element:" << element;
+
     if (element == self->_source) {
+        qWarning() << "GstVideoReceiver: New source pad detected, calling _onNewSourcePad";
         self->_onNewSourcePad(pad);
     } else if (element == self->_decoder) {
+        qWarning() << "GstVideoReceiver: New decoder pad detected, calling _onNewDecoderPad";
         self->_onNewDecoderPad(pad);
     } else {
         qCDebug(GstVideoReceiverLog) << "Unexpected call!";
@@ -1258,6 +1347,8 @@ void GstVideoReceiver::_onNewPad(GstElement *element, GstPad *pad, gpointer data
 void GstVideoReceiver::_wrapWithGhostPad(GstElement *element, GstPad *pad, gpointer data)
 {
     Q_UNUSED(data)
+
+    qWarning() << "GstVideoReceiver::_wrapWithGhostPad() called - creating ghost pad";
 
     gchar *name = gst_pad_get_name(pad);
     if (!name) {
@@ -1276,9 +1367,13 @@ void GstVideoReceiver::_wrapWithGhostPad(GstElement *element, GstPad *pad, gpoin
 
     (void) gst_pad_set_active(ghostpad, TRUE);
 
-    if (!gst_element_add_pad(GST_ELEMENT_PARENT(element), ghostpad)) {
+    GstElement *bin = GST_ELEMENT_PARENT(element);
+    if (!gst_element_add_pad(bin, ghostpad)) {
         qCCritical(GstVideoReceiverLog) << "gst_element_add_pad() failed";
+        return;
     }
+
+    qWarning() << "GstVideoReceiver: Ghost pad created successfully";
 }
 
 void GstVideoReceiver::_linkPad(GstElement *element, GstPad *pad, gpointer data)

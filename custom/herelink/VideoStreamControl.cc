@@ -22,9 +22,12 @@ VideoStreamControl::VideoStreamControl()
 
     _videoSettings = SettingsManager::instance()->videoSettings();
     _cameraIdSetting = _videoSettings->cameraId()->rawValue().toUInt();
+    _cameraInfoReceived = false;
+    _currentHdmiInput = 0;  // Default to HDMI 1
 
     connect(_videoSettings->cameraId(), &Fact::rawValueChanged, this, &VideoStreamControl::_cameraIdChanged);
-    connect(&_settingInProgressTimer, &QTimer::timeout, this, &VideoStreamControl::_settingInProgressTimeout);
+    //connect(&_infoRequestTimer, &QTimer::timeout, this, &VideoStreamControl::_requestVideoStreamInfo);
+    //_infoRequestTimer.setInterval(1000);
 }
 
 VideoStreamControl::~VideoStreamControl()
@@ -36,18 +39,105 @@ void VideoStreamControl::_mavlinkMessageReceived(LinkInterface* link, mavlink_me
 {
     if (message.msgid == MAVLINK_MSG_ID_HEARTBEAT && message.compid == MAV_COMP_ID_CAMERA) {
         _handleHeartbeatInfo(link, message);
+    } else if (message.msgid == MAVLINK_MSG_ID_VIDEO_STREAM_INFORMATION && message.compid == MAV_COMP_ID_CAMERA) {
+        _handleVideoStreamInformation(message);
     }
 }
 
-void VideoStreamControl::_settingInProgressTimeout()
-{
-    qCDebug(VideoStreamControlLog) << "Time out to setting camera, unlock UI!";
-    _setSettingInProgress(false);
-}
 
 void VideoStreamControl::_cameraIdChanged()
 {
+    qCDebug(VideoStreamControlLog) << "Camera ID changed to:" << _videoSettings->cameraId()->rawValue().toUInt();
     _setCameraIdLockUi(true);
+}
+
+void VideoStreamControl::_requestVideoStreamInfo()
+{
+    if (_linkInterface == NULL) {
+        return;
+    }
+    qCDebug(VideoStreamControlLog) << "Requesting video stream information from " << (int)_mavlinkProtocol->getSystemId() << "/" << (int)_mavlinkProtocol->getComponentId() << " to " << (int)_systemId << "/" << (int)MAV_COMP_ID_CAMERA;
+    mavlink_message_t msg;
+    mavlink_msg_command_long_pack(_mavlinkProtocol->getSystemId(), _mavlinkProtocol->getComponentId(), &msg,
+                                      _systemId, MAV_COMP_ID_CAMERA,
+                                      MAV_CMD_REQUEST_VIDEO_STREAM_INFORMATION, 0, 0, 0, 0, 0, 0, 0, 0);
+    uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
+    int len = mavlink_msg_to_send_buffer(buffer, &msg);
+
+    _linkInterface->writeBytesThreadSafe((const char*)buffer, len);
+}
+
+void VideoStreamControl::_handleVideoStreamInformation(mavlink_message_t& message)
+{
+    mavlink_video_stream_information_t streamInfo;
+    mavlink_msg_video_stream_information_decode(&message, &streamInfo);
+
+    qWarning() << "VideoStreamControl: Received video stream information: stream_id=" << streamInfo.stream_id
+               << "count=" << streamInfo.count;
+    qCDebug(VideoStreamControlLog) << "Received video stream information: stream_id=" << streamInfo.stream_id
+                                   << "count=" << streamInfo.count;
+
+    // Convert stream_id from 1-based to 0-based for QGC camera setting
+    uint32_t cameraIdZeroBased = (streamInfo.stream_id > 0) ? streamInfo.stream_id - 1 : 0;
+
+    // Check if we need to start streaming based on state
+    bool shouldStartStreaming = false;
+
+    if (!_cameraInfoReceived) {
+        // Case 1: Never run before, start current stream
+        shouldStartStreaming = true;
+        _cameraInfoReceived = true;
+        emit cameraInfoReceivedChanged();
+        qCDebug(VideoStreamControlLog) << "First camera information received, will start streaming";
+    } else if (cameraIdZeroBased != _cameraIdSetting) {
+        // Case 2: Run before but camera changed, start new stream
+        shouldStartStreaming = true;
+        qCDebug(VideoStreamControlLog) << "Camera changed, will restart streaming";
+    }
+
+    // Update current HDMI input and emit signal if it changed
+    if (_currentHdmiInput != cameraIdZeroBased) {
+        _currentHdmiInput = cameraIdZeroBased;
+        emit currentHdmiInputChanged();
+        qCDebug(VideoStreamControlLog) << "HDMI input changed to:" << (_currentHdmiInput == 0 ? "HDMI 1" : "HDMI 2");
+    }
+
+    // Always log current state for debugging button issues
+    qWarning() << "VideoStreamControl: Current HDMI input =" << _currentHdmiInput << "(" << (_currentHdmiInput == 0 ? "HDMI 1" : "HDMI 2") << ")";
+
+    // Update our camera setting to match the air unit's current camera
+    if (cameraIdZeroBased != _cameraIdSetting) {
+        qCDebug(VideoStreamControlLog) << "Air unit stream ID" << streamInfo.stream_id
+                                       << "(0-based:" << cameraIdZeroBased << ") differs from QGC setting" << _cameraIdSetting;
+
+        // Temporarily disconnect the signal to avoid triggering another change
+        disconnect(_videoSettings->cameraId(), &Fact::rawValueChanged, this, &VideoStreamControl::_cameraIdChanged);
+
+        // Update QGC's setting to match air unit (convert to 0-based)
+        _videoSettings->cameraId()->setRawValue(cameraIdZeroBased);
+        _cameraIdSetting = cameraIdZeroBased;
+
+        // Reconnect the signal
+        connect(_videoSettings->cameraId(), &Fact::rawValueChanged, this, &VideoStreamControl::_cameraIdChanged);
+
+        qCDebug(VideoStreamControlLog) << "Synchronized QGC camera setting to" << cameraIdZeroBased;
+
+        // Only restart stream if this sync represents an actual change we need to act on
+        // (not just initial sync - the stream should already be correct)
+        qWarning() << "VideoStreamControl: Camera synchronized but not restarting stream - should already be on correct input";
+        emit videoNeedsReset(); // Removed - don't restart unnecessarily
+    }
+
+    // Start streaming if needed
+    if (shouldStartStreaming) {
+        //_startVideoStreaming();
+    }
+
+    // Always unlock UI when we get camera info - the buttons will show correct state
+    if (_settingInProgress) {
+        qCDebug(VideoStreamControlLog) << "Unlocking UI after receiving camera info";
+        _setSettingInProgress(false);
+    }
 }
 
 void VideoStreamControl::_handleHeartbeatInfo(LinkInterface* link, mavlink_message_t& message)
@@ -76,7 +166,12 @@ void VideoStreamControl::_handleHeartbeatInfo(LinkInterface* link, mavlink_messa
 
     _linkInterface = link;
 
-    _startVideoStreaming();
+    // Start periodic video stream information requests
+    //if (!_infoRequestTimer.isActive()) {
+    //    _infoRequestTimer.start();
+    //}
+
+    _requestVideoStreamInfo();
 }
 
 void VideoStreamControl::_setCameraId()
@@ -89,15 +184,29 @@ void VideoStreamControl::_setCameraId()
 
 void VideoStreamControl::_setCameraIdLockUi(bool lockUi)
 {
+    qCDebug(VideoStreamControlLog) << "_setCameraIdLockUi called with lockUi:" << lockUi << "_linkInterface:" << (_linkInterface ? "valid" : "null");
+
     if (_linkInterface == NULL) {
+        qCDebug(VideoStreamControlLog) << "No link interface available, cannot change camera ID";
         return;
     }
-    _cameraIdSetting = _videoSettings->cameraId()->rawValue().toUInt();
 
-    _setCameraId();
+    uint32_t newCameraId = _videoSettings->cameraId()->rawValue().toUInt();
 
-    if (lockUi) {
-        _setSettingInProgress(true);
+    // Only proceed if the camera ID has actually changed
+    if (newCameraId != _cameraIdSetting) {
+        qCDebug(VideoStreamControlLog) << "User changed camera ID from" << _cameraIdSetting << "to" << newCameraId;
+        _cameraIdSetting = newCameraId;
+
+        _setCameraId();
+
+        if (lockUi) {
+            _setSettingInProgress(true);
+        }
+
+        QTimer::singleShot(3000, this, &VideoStreamControl::_requestVideoStreamInfo);
+    } else {
+        qCDebug(VideoStreamControlLog) << "Camera ID unchanged, no action needed";
     }
 }
 
@@ -115,21 +224,15 @@ void VideoStreamControl::_startVideoStreaming() {
 
     _linkInterface->writeBytesThreadSafe((const char*)buffer, len);
 
-    emit videoNeedsReset();
+    //QTimer::singleShot(3000, this, &VideoStreamControl::videoNeedsReset);
 }
 
 void VideoStreamControl::_setSettingInProgress(bool inProgress)
 {
     if (inProgress) {
-        _settingInProgressTimer.setInterval(5000);
-        _settingInProgressTimer.setSingleShot(true);
-        _settingInProgressTimer.start();
-        qCDebug(VideoStreamControlLog) << "Setup timer for setting camera, and lock UI";
+        qCDebug(VideoStreamControlLog) << "Lock UI for setting camera";
     } else {
-        if (_settingInProgressTimer.isActive()) {
-            _settingInProgressTimer.stop();
-            qCDebug(VideoStreamControlLog) << "Done for setting camera, unlock UI and clear timer";
-        }
+        qCDebug(VideoStreamControlLog) << "Unlock UI after setting camera";
     }
 
     _settingInProgress = inProgress;
