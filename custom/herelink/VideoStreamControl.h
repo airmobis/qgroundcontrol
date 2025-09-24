@@ -51,7 +51,6 @@ private:
 
     void _handleHeartbeatInfo(LinkInterface* link, mavlink_message_t& message);
     void _handleVideoStreamInformation(mavlink_message_t& message);
-    void _setCameraId();
     void _setCameraIdLockUi(bool lockUi);
     void _startVideoStreaming();
     void _setSettingInProgress(bool inProgress);

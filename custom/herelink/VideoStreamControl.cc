@@ -174,14 +174,6 @@ void VideoStreamControl::_handleHeartbeatInfo(LinkInterface* link, mavlink_messa
     _requestVideoStreamInfo();
 }
 
-void VideoStreamControl::_setCameraId()
-{
-    if(_cameraCount > 1) {
-        _cameraIdSetting = _videoSettings->cameraId()->rawValue().toUInt();
-        _startVideoStreaming();
-    }
-}
-
 void VideoStreamControl::_setCameraIdLockUi(bool lockUi)
 {
     qCDebug(VideoStreamControlLog) << "_setCameraIdLockUi called with lockUi:" << lockUi << "_linkInterface:" << (_linkInterface ? "valid" : "null");
@@ -194,11 +186,12 @@ void VideoStreamControl::_setCameraIdLockUi(bool lockUi)
     uint32_t newCameraId = _videoSettings->cameraId()->rawValue().toUInt();
 
     // Only proceed if the camera ID has actually changed
-    if (newCameraId != _cameraIdSetting) {
+    if (newCameraId != _cameraIdSetting /*&& _cameraCount > 1*/) {
         qCDebug(VideoStreamControlLog) << "User changed camera ID from" << _cameraIdSetting << "to" << newCameraId;
+
         _cameraIdSetting = newCameraId;
 
-        _setCameraId();
+        _startVideoStreaming();
 
         if (lockUi) {
             _setSettingInProgress(true);
