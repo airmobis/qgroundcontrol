@@ -25,15 +25,20 @@ public:
     Q_PROPERTY(bool cameraInfoReceived READ cameraInfoReceived NOTIFY cameraInfoReceivedChanged)
     bool cameraInfoReceived() { return _cameraInfoReceived; }
 
+    Q_PROPERTY(uint8_t currentResolution READ currentResolution NOTIFY currentResolutionChanged)
+    uint8_t currentResolution() { return _currentResolution; }
+
 signals:
     void settingInProgressChanged();
     void videoNeedsReset();
     void currentHdmiInputChanged();
     void cameraInfoReceivedChanged();
+    void currentResolutionChanged();
 
 private slots:
     void _mavlinkMessageReceived(LinkInterface *link, mavlink_message_t message);
     void _cameraIdChanged();
+    void _resolutionChanged();
     void _requestVideoStreamInfo();
 
 private:
@@ -48,6 +53,7 @@ private:
     bool _settingInProgress;
     bool _cameraInfoReceived;
     uint8_t _currentHdmiInput;
+    uint8_t _currentResolution;
 
     void _handleHeartbeatInfo(LinkInterface* link, mavlink_message_t& message);
     void _handleVideoStreamInformation(mavlink_message_t& message);

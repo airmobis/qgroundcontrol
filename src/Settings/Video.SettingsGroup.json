@@ -142,6 +142,15 @@
     "longDesc":         "Camera ID used for video streaming.",
     "type":             "uint32",
     "default":          0
+},
+{
+    "name":             "resolution",
+    "shortDesc":        "Resolution",
+    "longDesc":         "Video resolution for streaming.",
+    "type":             "uint32",
+    "enumStrings":      "720p,1080p",
+    "enumValues":       "0,1",
+    "default":          1
 }
 ]
 }

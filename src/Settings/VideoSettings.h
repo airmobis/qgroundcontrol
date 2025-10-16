@@ -37,6 +37,8 @@ public:
     DEFINE_SETTINGFACT(forceVideoDecoder)
     // Herelink HDMI source switching
     DEFINE_SETTINGFACT(cameraId)
+    // Herelink resolution switching
+    DEFINE_SETTINGFACT(resolution)
 
     Q_PROPERTY(bool     streamConfigured        READ streamConfigured       NOTIFY streamConfiguredChanged)
     Q_PROPERTY(QString  rtspVideoSource         READ rtspVideoSource        CONSTANT)

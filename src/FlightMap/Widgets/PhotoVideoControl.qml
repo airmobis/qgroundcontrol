@@ -347,7 +347,7 @@ Rectangle {
                         flow:   GridLayout.TopToBottom
                         rows:   dynamicRows + _camera.activeSettings.length
 
-                        property int dynamicRows: 11
+                        property int dynamicRows: 12
 
                         // First column
                         QGCLabel {
@@ -385,6 +385,12 @@ Rectangle {
 
                         QGCLabel {
                             text:               qsTr("HDMI Input")
+                            visible:            QGroundControl.corePlugin.isHerelink
+                            onVisibleChanged:   gridLayout.dynamicRows += visible ? 1 : -1
+                        }
+
+                        QGCLabel {
+                            text:               qsTr("Resolution")
                             visible:            QGroundControl.corePlugin.isHerelink
                             onVisibleChanged:   gridLayout.dynamicRows += visible ? 1 : -1
                         }
@@ -536,6 +542,17 @@ Rectangle {
                                 onClicked: {
                                     _videoStreamSettings.cameraId.rawValue = 1
                                 }
+                            }
+                        }
+
+                        Row {
+                            spacing: ScreenTools.defaultFontPixelWidth / 2
+                            visible: QGroundControl.corePlugin.isHerelink
+
+                            QGCComboBox {
+                                model:              [ qsTr("720p"), qsTr("1080p") ]
+                                currentIndex:       _videoStreamSettings.resolution.rawValue
+                                onActivated:        (index) => { _videoStreamSettings.resolution.rawValue = index }
                             }
                         }
 

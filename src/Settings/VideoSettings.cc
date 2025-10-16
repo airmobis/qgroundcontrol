@@ -94,6 +94,8 @@ DECLARE_SETTINGSFACT(VideoSettings, streamEnabled)
 DECLARE_SETTINGSFACT(VideoSettings, disableWhenDisarmed)
 // Herelink HDMI source switching
 DECLARE_SETTINGSFACT(VideoSettings, cameraId)
+// Herelink resolution switching
+DECLARE_SETTINGSFACT(VideoSettings, resolution)
 
 DECLARE_SETTINGSFACT_NO_FUNC(VideoSettings, videoSource)
 {
