@@ -13,6 +13,7 @@
 
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkProxy>
+#include <QtNetwork/QSslSocket>
 #include <QtPositioning/QGeoCoordinate>
 
 QGC_LOGGING_CATEGORY(TerrainQueryInterfaceLog, "qgc.terrain.terrainqueryinterface")

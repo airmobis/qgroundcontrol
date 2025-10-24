@@ -11,8 +11,10 @@
 #include "QGCLoggingCategory.h"
 
 #include <QtCore/QFileInfo>
+#include <QtCore/QRegularExpression>
 #include <QtCore/QStandardPaths>
 #include <QtNetwork/QNetworkProxy>
+#include <QtNetwork/QSslSocket>
 
 QGC_LOGGING_CATEGORY(QGCFileDownloadLog, "qgc.utilities.qgcfiledownload");
 
@@ -35,8 +37,27 @@ void QGCFileDownload::setCache(QAbstractNetworkCache *cache)
 
 void QGCFileDownload::setIgnoreSSLErrorsIfNeeded(QNetworkReply &networkReply)
 {
-    const bool sslLibraryBuildIs1x = ((QSslSocket::sslLibraryBuildVersionNumber() & 0xf0000000) == 0x10000000);
-    const bool sslLibraryIs3x = ((QSslSocket::sslLibraryVersionNumber() & 0xf0000000) == 0x30000000);
+    // Extract major version from version strings to avoid deprecated QSslSocket::sslLibraryBuildVersionNumber()
+    // and QSslSocket::sslLibraryVersionNumber() which are deprecated in Qt 6.8 with OpenSSL 3.x
+    const QString buildVersionString = QSslSocket::sslLibraryBuildVersionString();
+    const QString runtimeVersionString = QSslSocket::sslLibraryVersionString();
+    
+    // Extract major version number from version strings (e.g., "OpenSSL 1.1.1" -> 1, "OpenSSL 3.0.0" -> 3)
+    auto extractMajorVersion = [](const QString &versionString) -> int {
+        QRegularExpression versionRegex(QStringLiteral(R"((\d+)\.\d+)"));
+        QRegularExpressionMatch match = versionRegex.match(versionString);
+        if (match.hasMatch()) {
+            return match.captured(1).toInt();
+        }
+        return 0;
+    };
+    
+    const int buildMajorVersion = extractMajorVersion(buildVersionString);
+    const int runtimeMajorVersion = extractMajorVersion(runtimeVersionString);
+    
+    const bool sslLibraryBuildIs1x = (buildMajorVersion == 1);
+    const bool sslLibraryIs3x = (runtimeMajorVersion == 3);
+    
     if (sslLibraryBuildIs1x && sslLibraryIs3x) {
         qCWarning(QGCFileDownloadLog) << "Ignoring ssl certificates due to OpenSSL version mismatch";
         QList<QSslError> errorsThatCanBeIgnored;

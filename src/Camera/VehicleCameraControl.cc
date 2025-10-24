@@ -37,6 +37,8 @@
 #include <QtQml/QQmlEngine>
 #include <QtNetwork/QNetworkProxy>
 #include <QtNetwork/QNetworkReply>
+#include <QtNetwork/QSslConfiguration>
+#include <QtNetwork/QSslSocket>
 
 //-----------------------------------------------------------------------------
 QGCCameraOptionExclusion::QGCCameraOptionExclusion(QObject* parent, QString param_, QString value_, QStringList exclusions_)

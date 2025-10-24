@@ -22,6 +22,7 @@
 #include <QtNetwork/QNetworkReply>
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QSslConfiguration>
+#include <QtNetwork/QSslSocket>
 #include <QtPositioning/QGeoCoordinate>
 
 QGC_LOGGING_CATEGORY(TerrainQueryCopernicusLog, "qgc.terrain.terrainquerycopernicus")
