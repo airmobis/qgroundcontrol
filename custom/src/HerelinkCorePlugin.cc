@@ -24,9 +24,7 @@ HerelinkCorePlugin::HerelinkCorePlugin(QObject* parent)
 {
     _herelinkOptions = new HerelinkOptions(this, nullptr);
 
-    // TODO: We may need to connect to signals here instead of setToolbox
-    // auto multiVehicleManager = qgcApp()->toolbox()->multiVehicleManager();
-    // connect(multiVehicleManager, &MultiVehicleManager::activeVehicleChanged, this, &HerelinkCorePlugin::_activeVehicleChanged);
+    connect(MultiVehicleManager::instance(), &MultiVehicleManager::activeVehicleChanged, this, &HerelinkCorePlugin::_activeVehicleChanged);
 }
 
 
