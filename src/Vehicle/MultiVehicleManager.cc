@@ -320,12 +320,12 @@ void MultiVehicleManager::_sendGCSHeartbeat()
 
     const QList<SharedLinkInterfacePtr> sharedLinks = LinkManager::instance()->links();
     for (const SharedLinkInterfacePtr link: sharedLinks) {
-        if (!link->isConnected()) {
+        if (!link || !link->isConnected()) {
             continue;
         }
 
         const SharedLinkConfigurationPtr linkConfiguration = link->linkConfiguration();
-        if (linkConfiguration->isHighLatency()) {
+        if (!linkConfiguration || linkConfiguration->isHighLatency()) {
             continue;
         }
 
