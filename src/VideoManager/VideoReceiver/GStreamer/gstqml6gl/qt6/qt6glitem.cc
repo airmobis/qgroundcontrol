@@ -124,6 +124,9 @@ Qt6GLVideoItem::Qt6GLVideoItem()
 
   g_weak_ref_init (&priv->sink, NULL);
 
+  g_queue_init (&this->priv->bound_buffers);
+  g_queue_init (&this->priv->potentially_unbound_buffers);
+
   this->priv->display = gst_qml6_get_gl_display(TRUE);
 
   connect(this, SIGNAL(windowChanged(QQuickWindow*)), this,
@@ -168,6 +171,9 @@ Qt6GLVideoItem::~Qt6GLVideoItem()
     GST_TRACE ("old buffer %p should be unbound now, unreffing", tmp_buffer);
     gst_buffer_unref (tmp_buffer);
   }
+
+  g_queue_clear (&this->priv->potentially_unbound_buffers);
+  g_queue_clear (&this->priv->bound_buffers);
 
   gst_buffer_replace (&this->priv->buffer, NULL);
 
