@@ -374,15 +374,6 @@ Rectangle {
                             onVisibleChanged:   gridLayout.dynamicRows += visible ? 1 : -1
                         }
 
-                        // Mavlink Camera Protocol active settings
-                        Repeater {
-                            model: _camera.activeSettings
-
-                            QGCLabel {
-                                text: _camera.getFact(modelData).shortDescription
-                            }
-                        }
-
                         QGCLabel {
                             text:               qsTr("HDMI Input")
                             visible:            QGroundControl.corePlugin.isHerelink
@@ -393,6 +384,15 @@ Rectangle {
                             text:               qsTr("Resolution")
                             visible:            QGroundControl.corePlugin.isHerelink
                             onVisibleChanged:   gridLayout.dynamicRows += visible ? 1 : -1
+                        }
+
+                        // Mavlink Camera Protocol active settings
+                        Repeater {
+                            model: _camera.activeSettings
+
+                            QGCLabel {
+                                text: _camera.getFact(modelData).shortDescription
+                            }
                         }
 
                         QGCLabel {
@@ -468,6 +468,39 @@ Rectangle {
                             onValueChanged:     _camera.thermalOpacity = value
                         }
 
+                        Row {
+                            spacing: ScreenTools.defaultFontPixelWidth / 2
+                            visible: QGroundControl.corePlugin.isHerelink
+
+                            QGCButton {
+                                text: qsTr("HDMI 1")
+                                enabled: QGroundControl.videoManager.videoStreamControl.cameraInfoReceived && !QGroundControl.videoManager.videoStreamControl.settingInProgress && QGroundControl.videoManager.videoStreamControl.currentHdmiInput !== 0
+                                onClicked: {
+                                    console.log("HDMI 1 button clicked")
+                                    _videoStreamSettings.cameraId.rawValue = 0
+                                }
+                            }
+
+                            QGCButton {
+                                text: qsTr("HDMI 2")
+                                enabled: QGroundControl.videoManager.videoStreamControl.cameraInfoReceived && !QGroundControl.videoManager.videoStreamControl.settingInProgress && QGroundControl.videoManager.videoStreamControl.currentHdmiInput !== 1
+                                onClicked: {
+                                    _videoStreamSettings.cameraId.rawValue = 1
+                                }
+                            }
+                        }
+
+                        Row {
+                            spacing: ScreenTools.defaultFontPixelWidth / 2
+                            visible: QGroundControl.corePlugin.isHerelink
+
+                            QGCComboBox {
+                                model:              [ qsTr("720p"), qsTr("1080p") ]
+                                currentIndex:       _videoStreamSettings.resolution.rawValue
+                                onActivated:        (index) => { _videoStreamSettings.resolution.rawValue = index }
+                            }
+                        }
+
                         // Mavlink Camera Protocol active settings
                         Repeater {
                             model: _camera.activeSettings
@@ -520,39 +553,6 @@ Rectangle {
                                     visible:    parent._isBool
                                     onClicked:  parent._fact.value = checked ? 1 : 0
                                 }
-                            }
-                        }
-
-                        Row {
-                            spacing: ScreenTools.defaultFontPixelWidth / 2
-                            visible: QGroundControl.corePlugin.isHerelink
-
-                            QGCButton {
-                                text: qsTr("HDMI 1")
-                                enabled: QGroundControl.videoManager.videoStreamControl.cameraInfoReceived && !QGroundControl.videoManager.videoStreamControl.settingInProgress && QGroundControl.videoManager.videoStreamControl.currentHdmiInput !== 0
-                                onClicked: {
-                                    console.log("HDMI 1 button clicked")
-                                    _videoStreamSettings.cameraId.rawValue = 0
-                                }
-                            }
-
-                            QGCButton {
-                                text: qsTr("HDMI 2")
-                                enabled: QGroundControl.videoManager.videoStreamControl.cameraInfoReceived && !QGroundControl.videoManager.videoStreamControl.settingInProgress && QGroundControl.videoManager.videoStreamControl.currentHdmiInput !== 1
-                                onClicked: {
-                                    _videoStreamSettings.cameraId.rawValue = 1
-                                }
-                            }
-                        }
-
-                        Row {
-                            spacing: ScreenTools.defaultFontPixelWidth / 2
-                            visible: QGroundControl.corePlugin.isHerelink
-
-                            QGCComboBox {
-                                model:              [ qsTr("720p"), qsTr("1080p") ]
-                                currentIndex:       _videoStreamSettings.resolution.rawValue
-                                onActivated:        (index) => { _videoStreamSettings.resolution.rawValue = index }
                             }
                         }
 
