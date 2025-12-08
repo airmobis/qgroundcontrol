@@ -43,6 +43,13 @@ void VideoStreamControl::_mavlinkMessageReceived(LinkInterface* link, mavlink_me
         _handleHeartbeatInfo(link, message);
     } else if (message.msgid == MAVLINK_MSG_ID_VIDEO_STREAM_INFORMATION && message.compid == MAV_COMP_ID_CAMERA) {
         _handleVideoStreamInformation(message);
+    } else if (message.msgid == MAVLINK_MSG_ID_PARAM_EXT_ACK && message.compid == MAV_COMP_ID_CAMERA) {
+        mavlink_param_ext_ack_t ack;
+        mavlink_msg_param_ext_ack_decode(&message, &ack);
+        qCDebug(VideoStreamControlLog) << "VideoStreamControl: PARAM_EXT_ACK received:"
+                                       << "param_id=" << ack.param_id
+                                       << "param_result=" << ack.param_result
+                                       << "param_type=" << ack.param_type;
     }
 }
 
@@ -100,8 +107,14 @@ void VideoStreamControl::_handleVideoStreamInformation(mavlink_message_t& messag
     }
 
     // Update current HDMI input and emit signal if it changed
+    // Note: For user-initiated HDMI switches, _currentHdmiInput is already updated
+    // in _setCameraIdLockUi and videoNeedsReset is already emitted there.
+    // This handles cases where the air unit reports a different HDMI than expected.
+    bool hdmiChanged = false;
     if (_currentHdmiInput != cameraIdZeroBased) {
+        qCDebug(VideoStreamControlLog) << "HDMI input mismatch: expected" << _currentHdmiInput << "got" << cameraIdZeroBased;
         _currentHdmiInput = cameraIdZeroBased;
+        hdmiChanged = true;
         emit currentHdmiInputChanged();
         qCDebug(VideoStreamControlLog) << "HDMI input changed to:" << (_currentHdmiInput == 0 ? "HDMI 1" : "HDMI 2");
     }
@@ -114,11 +127,13 @@ void VideoStreamControl::_handleVideoStreamInformation(mavlink_message_t& messag
         detectedResolution = 1; // 1080p
     }
 
+    bool resolutionChanged = false;
     if (_currentResolution != detectedResolution) {
         qCDebug(VideoStreamControlLog) << "Resolution changed from"
                                        << (_currentResolution == 0 ? "720p" : "1080p") << "to"
                                        << (detectedResolution == 0 ? "720p" : "1080p");
         _currentResolution = detectedResolution;
+        resolutionChanged = true;
         emit currentResolutionChanged();
 
         // Synchronize UI setting with air unit's resolution
@@ -127,9 +142,16 @@ void VideoStreamControl::_handleVideoStreamInformation(mavlink_message_t& messag
         connect(_videoSettings->resolution(), &Fact::rawValueChanged, this, &VideoStreamControl::_resolutionChanged);
     }
 
-    // Always log current state for debugging button issues
-    qWarning() << "VideoStreamControl: Current HDMI input =" << _currentHdmiInput << "(" << (_currentHdmiInput == 0 ? "HDMI 1" : "HDMI 2") << ")"
-               << "Resolution =" << (detectedResolution == 0 ? "720p" : "1080p");
+    // Handle video restarts based on what changed.
+    // Don't restart on first connection (shouldStartStreaming) - pipeline is already starting.
+    // Only restart for HDMI changes - resolution changes are handled dynamically by GStreamer.
+    if (!shouldStartStreaming && hdmiChanged) {
+        qCDebug(VideoStreamControlLog) << "Requesting full video restart for HDMI change";
+        emit videoNeedsReset();
+    }
+
+    qCDebug(VideoStreamControlLog) << "Current HDMI input =" << _currentHdmiInput << "(" << (_currentHdmiInput == 0 ? "HDMI 1" : "HDMI 2") << ")"
+                                   << "Resolution =" << (detectedResolution == 0 ? "720p" : "1080p");
 
     // Update our camera setting to match the air unit's current camera
     if (cameraIdZeroBased != _cameraIdSetting) {
@@ -150,8 +172,7 @@ void VideoStreamControl::_handleVideoStreamInformation(mavlink_message_t& messag
 
         // Only restart stream if this sync represents an actual change we need to act on
         // (not just initial sync - the stream should already be correct)
-        qWarning() << "VideoStreamControl: Camera synchronized but not restarting stream - should already be on correct input";
-        emit videoNeedsReset(); // Removed - don't restart unnecessarily
+        // Don't emit videoNeedsReset() here - it causes restart loops
     }
 
     // Start streaming if needed
@@ -216,6 +237,8 @@ void VideoStreamControl::_setCameraIdLockUi(bool lockUi)
         qCDebug(VideoStreamControlLog) << "User changed camera ID from" << _cameraIdSetting << "to" << newCameraId;
 
         _cameraIdSetting = newCameraId;
+        _currentHdmiInput = newCameraId;
+        emit currentHdmiInputChanged();
 
         _startVideoStreaming();
 
@@ -223,6 +246,13 @@ void VideoStreamControl::_setCameraIdLockUi(bool lockUi)
             _setSettingInProgress(true);
         }
 
+        // Trigger video reset immediately - don't wait for VIDEO_STREAM_INFORMATION
+        // The air unit takes 20+ seconds to respond, so we restart the pipeline now
+        // and let GStreamer's retry mechanism reconnect when the stream is ready.
+        qCDebug(VideoStreamControlLog) << "Triggering immediate video reset for HDMI change";
+        emit videoNeedsReset();
+
+        // Still request stream info to confirm the change eventually
         QTimer::singleShot(3000, this, &VideoStreamControl::_requestVideoStreamInfo);
     } else {
         qCDebug(VideoStreamControlLog) << "Camera ID unchanged, no action needed";
@@ -299,9 +329,18 @@ void VideoStreamControl::_resolutionChanged()
         int len = mavlink_msg_to_send_buffer(buffer, &msg);
         _linkInterface->writeBytesThreadSafe((const char*)buffer, len);
 
-        // Update local state and emit signal
+        // Update _currentResolution optimistically - we can't wait for VIDEO_STREAM_INFORMATION
+        // because it takes too long (20+ seconds) and we need to allow subsequent changes.
         _currentResolution = newResolution;
         emit currentResolutionChanged();
+
+        // Restart decoding after a delay to let the air unit encoder change resolution.
+        // We use decodingNeedsRestart (lighter-weight) instead of videoNeedsReset (full RTSP restart).
+        // The delay allows the encoder to output new resolution frames before we restart.
+        QTimer::singleShot(1000, this, [this]() {
+            qCDebug(VideoStreamControlLog) << "Triggering decoder restart for resolution change";
+            emit decodingNeedsRestart();
+        });
     } else {
         qCDebug(VideoStreamControlLog) << "Resolution unchanged, no action needed";
     }

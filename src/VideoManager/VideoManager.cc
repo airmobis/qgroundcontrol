@@ -68,6 +68,7 @@ VideoManager::VideoManager(QObject *parent)
 #ifdef QGC_HERELINK_AIRUNIT_VIDEO
     if (_videoStreamControl) {
         (void) connect(_videoStreamControl, &VideoStreamControl::videoNeedsReset, this, &VideoManager::_restartAllVideos);
+        (void) connect(_videoStreamControl, &VideoStreamControl::decodingNeedsRestart, this, &VideoManager::_restartDecoding);
     }
 #endif
 }
@@ -614,8 +615,40 @@ void VideoManager::_communicationLostChanged(bool connectionLost)
 
 void VideoManager::_restartAllVideos()
 {
+    qCDebug(VideoManagerLog) << "Video reset requested";
     for (VideoReceiver *videoReceiver : std::as_const(_videoReceivers)) {
         _restartVideo(videoReceiver);
+    }
+}
+
+void VideoManager::_restartDecoding()
+{
+    qCDebug(VideoManagerLog) << "Decoding restart requested (keeping RTSP alive)";
+    for (VideoReceiver *receiver : std::as_const(_videoReceivers)) {
+        if (!receiver || !receiver->started()) {
+            continue;
+        }
+
+        // Stop decoding, then restart it after a brief delay to allow GL cleanup
+        receiver->stopDecoding();
+
+        // Recreate the video sink and restart decoding
+        QTimer::singleShot(500, this, [this, receiver]() {
+            if (!receiver) {
+                return;
+            }
+
+            // Create a new video sink with fresh GL textures
+            void *newSink = QGCCorePlugin::instance()->createVideoSink(receiver->widget(), receiver);
+            if (!newSink) {
+                qCCritical(VideoManagerLog) << "Failed to create new video sink";
+                return;
+            }
+
+            receiver->setSink(newSink);
+            receiver->startDecoding(newSink);
+            qCDebug(VideoManagerLog) << "Decoding restarted with new sink";
+        });
     }
 }
 
@@ -626,7 +659,7 @@ void VideoManager::_restartVideo(VideoReceiver *receiver)
         return;
     }
 
-    qCDebug(VideoManagerLog) << "Restart video receiver" << receiver->name();
+    qCDebug(VideoManagerLog) << "Restart video receiver" << receiver->name() << "started:" << receiver->started();
 
     if (receiver->started()) {
         _stopReceiver(receiver);
@@ -729,8 +762,9 @@ void VideoManager::_initVideoReceiver(VideoReceiver *receiver, QQuickWindow *win
         if (status == VideoReceiver::STATUS_INVALID_URL) {
             qCDebug(VideoManagerLog) << "Invalid video URL. Not restarting";
         } else {
+            qCDebug(VideoManagerLog) << "Scheduling restart in 3 seconds";
             QTimer::singleShot(3000, receiver, [this, receiver]() {
-                qCDebug(VideoManagerLog) << "Restarting video receiver" << receiver->name() << receiver->uri();
+                qCDebug(VideoManagerLog) << "Starting receiver after delay" << receiver->name() << receiver->uri();
                 _startReceiver(receiver);
             });
         }

@@ -31,6 +31,7 @@ public:
 signals:
     void settingInProgressChanged();
     void videoNeedsReset();
+    void decodingNeedsRestart();  // Lighter-weight reset: just restart decoder/sink, keep RTSP alive
     void currentHdmiInputChanged();
     void cameraInfoReceivedChanged();
     void currentResolutionChanged();
