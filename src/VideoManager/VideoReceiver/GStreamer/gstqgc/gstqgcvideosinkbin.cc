@@ -10,12 +10,12 @@
 #include "gstqgcvideosinkbin.h"
 #include "gstqgcelements.h"
 
-#include <gst/gl/gl.h>
+#include <gst/gst.h>
 
 #define GST_CAT_DEFAULT gst_qgc_video_sink_bin_debug
 GST_DEBUG_CATEGORY_STATIC(GST_CAT_DEFAULT);
 
-#define DEFAULT_ENABLE_LAST_SAMPLE FALSE
+#define DEFAULT_ENABLE_LAST_SAMPLE TRUE
 #define DEFAULT_FORCE_ASPECT_RATIO TRUE
 #define DEFAULT_PAR_N 0
 #define DEFAULT_PAR_D 1
@@ -42,15 +42,6 @@ enum
 
 static GParamSpec *properties[PROP_LAST];
 
-enum
-{
-    SIGNAL_0,
-    SIGNAL_CREATE_ELEMENT,
-    SIGNAL_LAST
-};
-
-static guint gst_qgc_video_sink_bin_signals[SIGNAL_LAST] = { 0 };
-
 #define gst_qgc_video_sink_bin_parent_class parent_class
 G_DEFINE_TYPE_WITH_CODE(
     GstQgcVideoSinkBin,
@@ -69,9 +60,43 @@ GST_ELEMENT_REGISTER_DEFINE_WITH_CODE(qgcvideosinkbin,"qgcvideosinkbin",
 
 static void gst_qgc_video_sink_bin_set_property(GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec);
 static void gst_qgc_video_sink_bin_get_property(GObject *object, guint prop_id, GValue *value, GParamSpec *pspec);
-static GstElement *gst_qgc_video_sink_bin_on_glsinkbin_create_element(GstElement *object, gpointer udata);
 static void gst_qgc_video_sink_bin_dispose(GObject *object);
 static void gst_qgc_video_sink_bin_finalize(GObject *object);
+
+// Query function to forward caps queries to glupload and context queries to qmlglsink
+static gboolean
+gst_qgc_video_sink_bin_sink_pad_query(GstPad *pad, GstObject *parent, GstQuery *query)
+{
+    GstQgcVideoSinkBin *self = GST_QGC_VIDEO_SINK_BIN(parent);
+    GstElement *element = NULL;
+
+    switch (GST_QUERY_TYPE(query)) {
+    case GST_QUERY_CAPS:
+        element = self->glupload;
+        break;
+    case GST_QUERY_CONTEXT:
+        element = self->qmlglsink;
+        break;
+    default:
+        return gst_pad_query_default(pad, parent, query);
+    }
+
+    if (!element) {
+        GST_ERROR_OBJECT(self, "No element found for query");
+        return FALSE;
+    }
+
+    GstPad *sinkpad = gst_element_get_static_pad(element, "sink");
+    if (!sinkpad) {
+        GST_ERROR_OBJECT(self, "No sink pad found on element");
+        return FALSE;
+    }
+
+    gboolean ret = gst_pad_query(sinkpad, query);
+    gst_object_unref(sinkpad);
+
+    return ret;
+}
 
 static void
 gst_qgc_video_sink_bin_class_init(GstQgcVideoSinkBinClass *klass)
@@ -100,7 +125,7 @@ gst_qgc_video_sink_bin_class_init(GstQgcVideoSinkBinClass *klass)
 
     properties[PROP_WIDGET] = g_param_spec_pointer(
         "widget", "QQuickItem",
-        "Owning QML item – handed off to qml6glsink",
+        "Owning QML item - handed off to qml6glsink",
         (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)
     );
 
@@ -129,17 +154,6 @@ gst_qgc_video_sink_bin_class_init(GstQgcVideoSinkBinClass *klass)
 
     g_object_class_install_properties(object_class, PROP_LAST, properties);
 
-    gst_qgc_video_sink_bin_signals[SIGNAL_CREATE_ELEMENT] = g_signal_new(
-        "create-element",           /* name */
-        G_TYPE_FROM_CLASS(klass),   /* owner type */
-        G_SIGNAL_RUN_LAST,          /* flags */
-        0,                          /* class offset for default handler */
-        NULL, NULL,                 /* accumulator / accu-data */
-        NULL,                       /* generic marshaller */
-        GST_TYPE_ELEMENT,           /* return type */
-        0                           /* param count */
-    );
-
     gst_element_class_set_static_metadata(element_class,
         "QGC Video Sink Bin", "Sink/Video/Bin",
         "GL accelerated video sink wrapper used by QGroundControl",
@@ -150,49 +164,92 @@ gst_qgc_video_sink_bin_class_init(GstQgcVideoSinkBinClass *klass)
 static void
 gst_qgc_video_sink_bin_init(GstQgcVideoSinkBin *self)
 {
-    self->glsinkbin = gst_element_factory_make("glsinkbin", NULL);
-    if (!self->glsinkbin) {
-        GST_ERROR_OBJECT(self, "gst_element_factory_make('glsinkbin') failed");
-        return;
+    gboolean initialized = FALSE;
+    GstElement *glcolorconvert = NULL;
+    GstPad *pad = NULL;
+
+    do {
+        // Create glupload element
+        self->glupload = gst_element_factory_make("glupload", NULL);
+        if (!self->glupload) {
+            GST_ERROR_OBJECT(self, "gst_element_factory_make('glupload') failed");
+            break;
+        }
+
+        // Create qml6glsink element
+        self->qmlglsink = gst_element_factory_make("qml6glsink", NULL);
+        if (!self->qmlglsink) {
+            GST_ERROR_OBJECT(self, "gst_element_factory_make('qml6glsink') failed");
+            break;
+        }
+
+        // Create glcolorconvert element
+        glcolorconvert = gst_element_factory_make("glcolorconvert", NULL);
+        if (!glcolorconvert) {
+            GST_ERROR_OBJECT(self, "gst_element_factory_make('glcolorconvert') failed");
+            break;
+        }
+
+        // Get sink pad from glupload for ghost pad
+        pad = gst_element_get_static_pad(self->glupload, "sink");
+        if (!pad) {
+            GST_ERROR_OBJECT(self, "gst_element_get_static_pad(glupload, 'sink') failed");
+            break;
+        }
+
+        // Keep references to our elements
+        gst_object_ref(self->glupload);
+        gst_object_ref(self->qmlglsink);
+
+        // Add all elements to bin
+        gst_bin_add_many(GST_BIN(self), self->glupload, glcolorconvert, self->qmlglsink, NULL);
+
+        // Link: glupload -> glcolorconvert -> qmlglsink
+        if (!gst_element_link_many(self->glupload, glcolorconvert, self->qmlglsink, NULL)) {
+            GST_ERROR_OBJECT(self, "gst_element_link_many() failed");
+            break;
+        }
+
+        // glcolorconvert is now owned by the bin, clear our reference
+        glcolorconvert = NULL;
+
+        // Create ghost pad for the bin's sink
+        GstPad *ghostpad = gst_ghost_pad_new("sink", pad);
+        if (!ghostpad) {
+            GST_ERROR_OBJECT(self, "gst_ghost_pad_new('sink') failed");
+            break;
+        }
+
+        // Set custom query function to forward caps/context queries
+        gst_pad_set_query_function(ghostpad, gst_qgc_video_sink_bin_sink_pad_query);
+
+        if (!gst_element_add_pad(GST_ELEMENT(self), ghostpad)) {
+            GST_ERROR_OBJECT(self, "gst_element_add_pad() failed");
+            break;
+        }
+
+        initialized = TRUE;
+    } while (0);
+
+    if (pad) {
+        gst_object_unref(pad);
+        pad = NULL;
     }
 
-    self->qmlglsink = gst_element_factory_make("qml6glsink", NULL);
-    if (!self->qmlglsink) {
-        GST_ERROR_OBJECT(self, "gst_element_factory_make('qml6glsink') failed");
-        return;
+    if (glcolorconvert) {
+        gst_object_unref(glcolorconvert);
+        glcolorconvert = NULL;
     }
 
-    g_object_set(self->glsinkbin,
-                 "sink", self->qmlglsink,
-                 PROP_ENABLE_LAST_SAMPLE_NAME, FALSE,
-                 NULL);
-
-    g_return_if_fail(gst_bin_add(GST_BIN(self), self->glsinkbin));
-
-    g_signal_connect(self->glsinkbin,
-                    "create-element",
-                    G_CALLBACK(gst_qgc_video_sink_bin_on_glsinkbin_create_element),
-                    self);
-
-    GstPad *sinkpad = gst_element_get_static_pad(self->glsinkbin, "sink");
-    if (!sinkpad) {
-        GST_ERROR_OBJECT(self, "gst_element_get_static_pad('sink') failed");
-        return;
-    }
-
-    GstPad *ghostpad = gst_ghost_pad_new("sink", sinkpad);
-    if (!ghostpad) {
-        GST_ERROR_OBJECT(self, "gst_ghost_pad_new('sink') failed");
-        gst_object_unref(sinkpad);
-        return;
-    }
-
-    if (!gst_element_add_pad(GST_ELEMENT(self), ghostpad)) {
-        GST_ERROR_OBJECT(self, "gst_element_add_pad() failed");
-    }
-
-    if (sinkpad) {
-        gst_object_unref(sinkpad);
+    if (!initialized) {
+        if (self->qmlglsink) {
+            gst_object_unref(self->qmlglsink);
+            self->qmlglsink = NULL;
+        }
+        if (self->glupload) {
+            gst_object_unref(self->glupload);
+            self->glupload = NULL;
+        }
     }
 }
 
@@ -201,9 +258,13 @@ gst_qgc_video_sink_bin_set_property(GObject *object, guint prop_id, const GValue
 {
     GstQgcVideoSinkBin *self = GST_QGC_VIDEO_SINK_BIN(object);
 
+    if (!self->qmlglsink) {
+        return;
+    }
+
     switch (prop_id) {
     case PROP_ENABLE_LAST_SAMPLE:
-        g_object_set(self->glsinkbin,
+        g_object_set(self->qmlglsink,
                      PROP_ENABLE_LAST_SAMPLE_NAME,
                      g_value_get_boolean(value),
                      NULL);
@@ -215,23 +276,20 @@ gst_qgc_video_sink_bin_set_property(GObject *object, guint prop_id, const GValue
                      NULL);
         break;
     case PROP_FORCE_ASPECT_RATIO:
-        g_object_set(self->glsinkbin,
+        g_object_set(self->qmlglsink,
                      PROP_FORCE_ASPECT_RATIO_NAME,
                      g_value_get_boolean(value),
                      NULL);
         break;
-    case PROP_PIXEL_ASPECT_RATIO: {
-        const gint num = gst_value_get_fraction_numerator(value);
-        const gint den = gst_value_get_fraction_denominator(value);
+    case PROP_PIXEL_ASPECT_RATIO:
         g_object_set(self->qmlglsink,
                      PROP_PIXEL_ASPECT_RATIO_NAME,
-                     num,
-                     den,
+                     gst_value_get_fraction_numerator(value),
+                     gst_value_get_fraction_denominator(value),
                      NULL);
         break;
-    }
     case PROP_SYNC:
-        g_object_set(self->glsinkbin,
+        g_object_set(self->qmlglsink,
                      PROP_SYNC_NAME,
                      g_value_get_boolean(value),
                      NULL);
@@ -247,10 +305,14 @@ gst_qgc_video_sink_bin_get_property(GObject *object, guint prop_id, GValue *valu
 {
     GstQgcVideoSinkBin *self = GST_QGC_VIDEO_SINK_BIN(object);
 
+    if (!self->qmlglsink) {
+        return;
+    }
+
     switch (prop_id) {
     case PROP_ENABLE_LAST_SAMPLE: {
         gboolean enable = FALSE;
-        g_object_get(self->glsinkbin,
+        g_object_get(self->qmlglsink,
                      PROP_ENABLE_LAST_SAMPLE_NAME,
                      &enable,
                      NULL);
@@ -259,7 +321,7 @@ gst_qgc_video_sink_bin_get_property(GObject *object, guint prop_id, GValue *valu
     }
     case PROP_LAST_SAMPLE: {
         GstSample *sample = NULL;
-        g_object_get(self->glsinkbin,
+        g_object_get(self->qmlglsink,
                      PROP_LAST_SAMPLE_NAME,
                      &sample,
                      NULL);
@@ -280,7 +342,7 @@ gst_qgc_video_sink_bin_get_property(GObject *object, guint prop_id, GValue *valu
     }
     case PROP_FORCE_ASPECT_RATIO: {
         gboolean enable = FALSE;
-        g_object_get(self->glsinkbin,
+        g_object_get(self->qmlglsink,
                      PROP_FORCE_ASPECT_RATIO_NAME,
                      &enable,
                      NULL);
@@ -298,7 +360,7 @@ gst_qgc_video_sink_bin_get_property(GObject *object, guint prop_id, GValue *valu
     }
     case PROP_SYNC: {
         gboolean enable = FALSE;
-        g_object_get(self->glsinkbin,
+        g_object_get(self->qmlglsink,
                      PROP_SYNC_NAME,
                      &enable,
                      NULL);
@@ -311,28 +373,20 @@ gst_qgc_video_sink_bin_get_property(GObject *object, guint prop_id, GValue *valu
     }
 }
 
-static GstElement *
-gst_qgc_video_sink_bin_on_glsinkbin_create_element(GstElement *object, gpointer udata)
-{
-    GstBin *glsinkbin = GST_BIN(object);
-    GstQgcVideoSinkBin *qgcVideoSinkBin = GST_QGC_VIDEO_SINK_BIN(udata);
-
-    qgcVideoSinkBin->glsinkbin = GST_ELEMENT(glsinkbin);
-    qgcVideoSinkBin->qmlglsink = gst_element_factory_make("qml6glsink", NULL);
-    if (!qgcVideoSinkBin->qmlglsink) {
-        GST_ERROR_OBJECT(qgcVideoSinkBin, "gst_element_factory_make('qml6glsink') failed");
-        g_signal_emit(GST_ELEMENT(qgcVideoSinkBin), gst_qgc_video_sink_bin_signals[SIGNAL_CREATE_ELEMENT], 0, &qgcVideoSinkBin->qmlglsink);
-    }
-
-    return qgcVideoSinkBin->qmlglsink;
-}
-
 static void
 gst_qgc_video_sink_bin_dispose(GObject *object)
 {
     GstQgcVideoSinkBin *self = GST_QGC_VIDEO_SINK_BIN(object);
 
-    (void) self;
+    if (self->qmlglsink) {
+        gst_object_unref(self->qmlglsink);
+        self->qmlglsink = NULL;
+    }
+
+    if (self->glupload) {
+        gst_object_unref(self->glupload);
+        self->glupload = NULL;
+    }
 
     G_OBJECT_CLASS(parent_class)->dispose(object);
 }
@@ -340,9 +394,5 @@ gst_qgc_video_sink_bin_dispose(GObject *object)
 static void
 gst_qgc_video_sink_bin_finalize(GObject *object)
 {
-    GstQgcVideoSinkBin *self = GST_QGC_VIDEO_SINK_BIN(object);
-
-    (void) self;
-
     G_OBJECT_CLASS(parent_class)->finalize(object);
 }

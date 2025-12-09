@@ -19,7 +19,7 @@ G_DECLARE_FINAL_TYPE (GstQgcVideoSinkBin, gst_qgc_video_sink_bin, GST, QGC_VIDEO
 struct _GstQgcVideoSinkBin
 {
     GstBin parent;
-    GstElement *glsinkbin;
+    GstElement *glupload;
     GstElement *qmlglsink;
 };
 
