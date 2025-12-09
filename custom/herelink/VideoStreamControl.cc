@@ -142,12 +142,10 @@ void VideoStreamControl::_handleVideoStreamInformation(mavlink_message_t& messag
         connect(_videoSettings->resolution(), &Fact::rawValueChanged, this, &VideoStreamControl::_resolutionChanged);
     }
 
-    // Handle video restarts based on what changed.
-    // Don't restart on first connection (shouldStartStreaming) - pipeline is already starting.
-    // Only restart for HDMI changes - resolution changes are handled dynamically by GStreamer.
-    if (!shouldStartStreaming && hdmiChanged) {
-        qCDebug(VideoStreamControlLog) << "Requesting full video restart for HDMI change";
-        emit videoNeedsReset();
+    // Don't restart video on HDMI or resolution changes - the GL context can get corrupted
+    // during restarts, causing a loop. Let GStreamer handle stream changes dynamically.
+    if (hdmiChanged) {
+        qCDebug(VideoStreamControlLog) << "HDMI changed - NOT restarting video (GL context protection)";
     }
 
     qCDebug(VideoStreamControlLog) << "Current HDMI input =" << _currentHdmiInput << "(" << (_currentHdmiInput == 0 ? "HDMI 1" : "HDMI 2") << ")"
@@ -246,11 +244,10 @@ void VideoStreamControl::_setCameraIdLockUi(bool lockUi)
             _setSettingInProgress(true);
         }
 
-        // Trigger video reset immediately - don't wait for VIDEO_STREAM_INFORMATION
-        // The air unit takes 20+ seconds to respond, so we restart the pipeline now
-        // and let GStreamer's retry mechanism reconnect when the stream is ready.
-        qCDebug(VideoStreamControlLog) << "Triggering immediate video reset for HDMI change";
-        emit videoNeedsReset();
+        // Don't trigger video reset - let the pipeline handle the stream change
+        // The GL context can get corrupted during restarts, causing a loop.
+        // The RTSP stream URL stays the same, so GStreamer should handle this.
+        qCDebug(VideoStreamControlLog) << "HDMI change requested - NOT restarting pipeline";
 
         // Still request stream info to confirm the change eventually
         QTimer::singleShot(3000, this, &VideoStreamControl::_requestVideoStreamInfo);
@@ -334,13 +331,9 @@ void VideoStreamControl::_resolutionChanged()
         _currentResolution = newResolution;
         emit currentResolutionChanged();
 
-        // Restart decoding after a delay to let the air unit encoder change resolution.
-        // We use decodingNeedsRestart (lighter-weight) instead of videoNeedsReset (full RTSP restart).
-        // The delay allows the encoder to output new resolution frames before we restart.
-        QTimer::singleShot(1000, this, [this]() {
-            qCDebug(VideoStreamControlLog) << "Triggering decoder restart for resolution change";
-            emit decodingNeedsRestart();
-        });
+        // Don't restart decoding - let GStreamer handle the resolution change dynamically.
+        // Restarting the decoder can cause GL context corruption leading to a restart loop.
+        qCDebug(VideoStreamControlLog) << "Resolution change requested - NOT restarting decoder";
     } else {
         qCDebug(VideoStreamControlLog) << "Resolution unchanged, no action needed";
     }

@@ -43,6 +43,12 @@ GstVideoReceiver::GstVideoReceiver(QObject *parent)
 GstVideoReceiver::~GstVideoReceiver()
 {
     stop();
+
+    // Clean up video sink if still held (it's now preserved across stop/start cycles)
+    if (_videoSink) {
+        gst_clear_object(&_videoSink);
+    }
+
     _worker->shutdown();
 
     // qCDebug(GstVideoReceiverLog) << this;
@@ -340,17 +346,23 @@ void GstVideoReceiver::startDecoding(void *sink)
         return;
     }
 
-    if (!_pipeline) {
-        gst_clear_object(&_videoSink);
-    }
-
-    if (_videoSink || _decoding) {
+    // Only check if we're actively decoding, not whether _videoSink exists.
+    // The video sink may exist from a previous run and we want to reuse it.
+    if (_decoding) {
         qCDebug(GstVideoReceiverLog) << "Already decoding!" << _uri;
         _dispatchSignal([this]() { emit onStartDecodingComplete(STATUS_INVALID_STATE); });
         return;
     }
 
     GstElement *videoSink = GST_ELEMENT(sink);
+
+    // If we already have a video sink and it's the same one, reuse it
+    // If it's different, release the old one first
+    if (_videoSink && _videoSink != videoSink) {
+        qCDebug(GstVideoReceiverLog) << "Releasing old video sink, using new one" << _uri;
+        gst_clear_object(&_videoSink);
+    }
+
     GstPad *pad = gst_element_get_static_pad(videoSink, "sink");
     if (!pad) {
         qCCritical(GstVideoReceiverLog) << "Unable to find sink pad of video sink" << _uri;
@@ -364,8 +376,11 @@ void GstVideoReceiver::startDecoding(void *sink)
     _videoSinkProbeId = gst_pad_add_probe(pad, GST_PAD_PROBE_TYPE_BUFFER, _videoSinkProbe, this, nullptr);
     gst_clear_object(&pad);
 
-    _videoSink = videoSink;
-    gst_object_ref(_videoSink);
+    // Only ref the sink if we don't already have a reference to it
+    if (_videoSink != videoSink) {
+        _videoSink = videoSink;
+        gst_object_ref(_videoSink);
+    }
 
     _removingDecoder = false;
 
@@ -663,7 +678,7 @@ GstElement *GstVideoReceiver::_makeSource(const QString &input)
                          "location", input.toUtf8().constData(),
                          "latency", 25,
                          "protocols", 1,                  // UDP only (GST_RTSP_LOWER_TRANS_UDP)
-                         "udp-timeout", G_GUINT64_CONSTANT(15000000), // 15 seconds (15000000 microseconds)
+                         "udp-timeout", G_GUINT64_CONSTANT(10000000), // 10 seconds (15000000 microseconds)
                          nullptr);
         } else if (isTcpMPEGTS) {
             source = gst_element_factory_make("tcpclientsrc", "source");
@@ -1207,12 +1222,18 @@ void GstVideoReceiver::_shutdownDecodingBranch()
 
     GstObject *parent = gst_element_get_parent(_videoSink);
     if (parent) {
+        // Remove from pipeline but do NOT destroy - we want to reuse it like old 4.0.8 did.
+        // The old code would remove the sink from the pipeline but keep the reference,
+        // allowing it to be re-added on the next start(). This preserves the GL context.
         (void) gst_bin_remove(GST_BIN(_pipeline), _videoSink);
         (void) gst_element_set_state(_videoSink, GST_STATE_NULL);
         gst_clear_object(&parent);
     }
 
-    gst_clear_object(&_videoSink);
+    // NOTE: We intentionally do NOT call gst_clear_object(&_videoSink) here.
+    // The video sink is kept and reused across stop/start cycles, just like in
+    // the old 4.0.8 code. This preserves the GL context/textures associated with
+    // the Qt widget and prevents black screen issues after HDMI/resolution changes.
 
     _removingDecoder = false;
 
@@ -1436,30 +1457,6 @@ GstPadProbeReturn GstVideoReceiver::_videoSinkProbe(GstPad *pad, GstPadProbeInfo
 
         if (pThis->_resetVideoSink) {
             pThis->_resetVideoSink = false;
-
-#if 0 // FIXME: this makes MPEG2-TS playing smooth but breaks RTSP
-           gst_pad_send_event(pad, gst_event_new_flush_start());
-           gst_pad_send_event(pad, gst_event_new_flush_stop(TRUE));
-
-           GstBuffer* buf;
-
-           if ((buf = gst_pad_probe_info_get_buffer(info)) != nullptr) {
-               GstSegment* seg;
-
-               if ((seg = gst_segment_new()) != nullptr) {
-                   gst_segment_init(seg, GST_FORMAT_TIME);
-
-                   seg->start = buf->pts;
-
-                   gst_pad_send_event(pad, gst_event_new_segment(seg));
-
-                   gst_segment_free(seg);
-                   seg = nullptr;
-               }
-
-               gst_pad_set_offset(pad, -static_cast<gint64>(buf->pts));
-           }
-#endif
         }
 
         pThis->_noteVideoSinkFrame();
