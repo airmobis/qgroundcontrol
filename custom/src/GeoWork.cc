@@ -563,7 +563,7 @@ namespace {
 void GeoWork::reportLocation() {
     // --- Guards ---
     if (_bearerToken.isEmpty()) {
-        qWarning() << "[GeoWork] reportLocation(): No bearer token set.";
+        // qWarning() << "[GeoWork] reportLocation(): No bearer token set.";
         return;
     }
 
