@@ -1,16 +1,16 @@
 qt_add_library(gstqml6gl STATIC)
 
 if(MACOS)
-    set(GSTREAMER_APIS gl rtsp)
+    find_package(PkgConfig)
 
-    # Find using Homebrew if possible, or Qt will try to help and inevitably fail.
-    list(PREPEND CMAKE_MODULE_PATH /opt/homebrew/opt/gstreamer/share/cmake)
-    find_package(GStreamer REQUIRED)
+    pkg_check_modules(GSTREAMER REQUIRED IMPORTED_TARGET gstreamer-1.0)
+    pkg_check_modules(GSTREAMER_GL REQUIRED IMPORTED_TARGET gstreamer-gl-1.0)
+    pkg_check_modules(GSTREAMER_RTSP REQUIRED IMPORTED_TARGET gstreamer-rtsp-1.0)
 
     target_link_libraries(gstqml6gl PUBLIC
-        GStreamer::GStreamer
-        GStreamer::gl
-        GStreamer::rtsp
+        PkgConfig::GSTREAMER
+        PkgConfig::GSTREAMER_GL
+        PkgConfig::GSTREAMER_RTSP
     )
 else()
     target_link_libraries(gstqml6gl PUBLIC GStreamer::GStreamer)
