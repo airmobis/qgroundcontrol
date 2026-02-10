@@ -9,43 +9,49 @@
 
 import QtQuick
 import QtQuick.Controls
-import QtQuick.Window
+import QtQuick.Dialogs
+import QtQuick.Layouts
 
-import QGroundControl
-import QGroundControl.Controllers
-import QGroundControl.Controls
-import QGroundControl.FactSystem
-import QGroundControl.FlightDisplay
-import QGroundControl.FlightMap
-import QGroundControl.Palette
-import QGroundControl.ScreenTools
-import QGroundControl.Vehicle
+import QtLocation 5.3
+import QtPositioning 5.3
+import QtQuick.Window 2.2
+import QtQml.Models 2.1
 
-import GeoWork
+import QGroundControl 1.0
+import QGroundControl.Controllers 1.0
+import QGroundControl.Controls 1.0
+import QGroundControl.FactSystem 1.0
+import QGroundControl.FlightDisplay 1.0
+import QGroundControl.FlightMap 1.0
+import QGroundControl.Palette 1.0
+import QGroundControl.ScreenTools 1.0
+import QGroundControl.Vehicle 1.0
+
+import GeoWork 1.0
 
 Item {
-    id: airmobisRoot
+    id: _root
 
     // These mirror the stock layer API expected by FlyView.qml
-    property var parentToolInsets               // Provided by parent.
-    property var totalToolInsets: airmobisRootToolInsets   // Overlay exposes its insets back to parent.
-    property var mapControl                     // Provided by parent.
+    property var parentToolInsets               // provided by parent
+    property var totalToolInsets: _toolInsets // overlay exposes its insets back to parent
+    property var mapControl                      // provided by parent
 
     // Pass-through insets object
     QGCToolInsets {
-        id: airmobisRootToolInsets
-        leftEdgeTopInset: airmobisRoot.parentToolInsets.leftEdgeTopInset
-        leftEdgeCenterInset: airmobisRoot.parentToolInsets.leftEdgeCenterInset
-        leftEdgeBottomInset: airmobisRoot.parentToolInsets.leftEdgeBottomInset
-        rightEdgeTopInset: airmobisRoot.parentToolInsets.rightEdgeTopInset
-        rightEdgeCenterInset: airmobisRoot.parentToolInsets.rightEdgeCenterInset
-        rightEdgeBottomInset: airmobisRoot.parentToolInsets.rightEdgeBottomInset
-        topEdgeLeftInset: airmobisRoot.parentToolInsets.topEdgeLeftInset
-        topEdgeCenterInset: airmobisRoot.parentToolInsets.topEdgeCenterInset
-        topEdgeRightInset: airmobisRoot.parentToolInsets.topEdgeRightInset
-        bottomEdgeLeftInset: airmobisRoot.parentToolInsets.bottomEdgeLeftInset
-        bottomEdgeCenterInset: airmobisRoot.parentToolInsets.bottomEdgeCenterInset
-        bottomEdgeRightInset: airmobisRoot.parentToolInsets.bottomEdgeRightInset
+        id: _toolInsets
+        leftEdgeTopInset: parentToolInsets.leftEdgeTopInset
+        leftEdgeCenterInset: parentToolInsets.leftEdgeCenterInset
+        leftEdgeBottomInset: parentToolInsets.leftEdgeBottomInset
+        rightEdgeTopInset: parentToolInsets.rightEdgeTopInset
+        rightEdgeCenterInset: parentToolInsets.rightEdgeCenterInset
+        rightEdgeBottomInset: parentToolInsets.rightEdgeBottomInset
+        topEdgeLeftInset: parentToolInsets.topEdgeLeftInset
+        topEdgeCenterInset: parentToolInsets.topEdgeCenterInset
+        topEdgeRightInset: parentToolInsets.topEdgeRightInset
+        bottomEdgeLeftInset: parentToolInsets.bottomEdgeLeftInset
+        bottomEdgeCenterInset: parentToolInsets.bottomEdgeCenterInset
+        bottomEdgeRightInset: parentToolInsets.bottomEdgeRightInset
     }
 
     Component.onCompleted: {
@@ -53,43 +59,35 @@ Item {
         if (typeof GeoWork !== 'undefined')
             GeoWork.autoBindVideo();
         try {
-            console.log("[geowork][qml] GeoWork object:", GeoWork);
-            console.log("[geowork][qml] tokenStatus:", GeoWork.tokenStatus, "deviceName:", GeoWork.deviceName);
+            console.log("[GeoWork] [QML] GeoWork object:", GeoWork);
+            console.log("[GeoWork] [QML] tokenStatus:", GeoWork.tokenStatus, "deviceName:", GeoWork.deviceName);
         } catch (e) {
-            console.warn("[geowork][qml] GeoWork access failed:", e);
+            console.warn("[GeoWork] [QML] GeoWork access failed:", e);
         }
         try {
             var v = QGroundControl.multiVehicleManager.activeVehicle;
-            console.log("[geowork][qml] activeVehicle exists?", !!v);
+            console.log("[GeoWork] [QML] activeVehicle exists?", !!v);
             if (v && v.gps && v.gps.count)
-                console.log("[geowork][qml] sats:", v.gps.count.rawValue);
+                console.log("[GeoWork] [QML] sats:", v.gps.count.rawValue);
         } catch (e2) {
-            console.warn("[geowork][qml] vehicle access failed:", e2);
+            console.warn("[GeoWork] [QML] vehicle access failed:", e2);
         }
-    }
-
-    Rectangle {
-        x: 8
-        y: 8
-        width: 20
-        height: 20
-        color: "red"
     }
 
     // ---- Loader (required) – settings panel is loaded by qrc path ----
     Loader {
-        id: airmobisRootGeoPanel
-        anchors.fill: airmobisRoot
+        id: geoPanel
+        anchors.fill: _root
         asynchronous: false
         source: "qrc:/Custom/GeoWork/GeoWorkSettingsPanel.qml"
         onStatusChanged: {
-            console.log("[geowork][qml] loader status:", status);
+            console.log("[GeoWork] [QML] loader status:", status);
             if (status === Loader.Ready && item) {
-                // item.anchors.fill = airmobisRoot;
+                item.anchors.fill = _root;
                 item.visible = false;
                 console.log("[GeoWork] Settings panel loaded");
             } else if (status === Loader.Error) {
-                console.warn("[geowork][qml] settings load ERROR; status:", status, "source:", source);
+                console.warn("[GeoWork] [QML] settings load ERROR; status:", status, "source:", source);
             }
         }
     }
@@ -103,13 +101,13 @@ Item {
 
     // ---- Background fetch every 5 minutes ----
     Timer {
-        id: airmobisRootGeoworkPoll
+        id: geoworkPoll
         interval: 5 * 60 * 1000
         repeat: true
         running: true
         triggeredOnStart: false
         onTriggered: {
-            if (GeoWork.tokenStatus === GeoWork.Valid) {
+            if (GeoWork.tokenStatus === 1) {
                 var nm = GeoWork.deviceName && GeoWork.deviceName.length ? GeoWork.deviceName : "BLUE001";
                 GeoWork.checkActiveTaskAndFetchState(nm);
             }
@@ -118,9 +116,9 @@ Item {
 
     // ---- Right/middle Geowork control pod (2 buttons, semi-transparent) ----
     Rectangle {
-        id: airmobisRootGeoworkPod
-        width: ScreenTools.defaultFontPixelWidth * 20
-        height: ScreenTools.defaultFontPixelHeight * 7
+        id: geoworkPod
+        width: ScreenTools.defaultFontPixelWidth * 26
+        height: ScreenTools.defaultFontPixelHeight * 8
         radius: 10
         color: "#66000000"    // semi-transparent
         border.width: 3
@@ -134,34 +132,41 @@ Item {
             anchors.margins: ScreenTools.defaultFontPixelWidth
             spacing: ScreenTools.defaultFontPixelHeight * 0.6
 
+            anchors.horizontalCenter: parent.horizontalCenter
+
             // ---- Settings button with OK/BAD icon ----
             Button {
-                id: airmobisRootGeoworkPodColumnSettingsButton
+                id: settingsBtn
                 width: parent.width - (ScreenTools.defaultFontPixelWidth * 2)
                 implicitHeight: ScreenTools.defaultFontPixelHeight * 2.2
+
                 background: Rectangle {
                     radius: 6
                     color: "#444444"      // darker grey
                     opacity: 0.95
                 }
+
                 contentItem: Row {
                     spacing: ScreenTools.defaultFontPixelWidth * 0.6
                     anchors.verticalCenter: parent.verticalCenter
+
                     Image {
                         id: settingsIcon
                         // Provide these SVGs in custom.qrc under prefix custom/img
                         source: (function () {
                                 try {
-                                    return GeoWork.tokenStatus === GeoWork.Valid ? "qrc:/custom/img/setting_OK.svg" : "qrc:/custom/img/setting_BAD.svg";
+                                    return GeoWork.tokenStatus === 1 ? "qrc:/custom/img/setting_OK.svg" : "qrc:/custom/img/setting_BAD.svg";
                                 } catch (e) {
-                                    console.warn("[geowork][qml] settings icon binding error:", e);
+                                    console.warn("[GeoWork] [QML] settings icon binding error:", e);
                                     return "qrc:/custom/img/setting_BAD.svg";
                                 }
                             })()
+
                         fillMode: Image.PreserveAspectFit
                         width: ScreenTools.defaultFontPixelHeight * 1.4
                         height: width
                     }
+
                     Text {
                         text: "Settings"
                         color: "white"
@@ -169,13 +174,14 @@ Item {
                         verticalAlignment: Text.AlignVCenter
                     }
                 }
-                onClicked: if (airmobisRootGeoPanel.item)
-                    airmobisRootGeoPanel.item.open()
+
+                onClicked: if (geoPanel.item)
+                    geoPanel.item.open()
             }
 
             // ---- Create Marker button with stateful behavior ----
             Item {
-                id: airmobisRootGeoworkPodColumnCreateButton
+                id: createBtn
                 width: parent.width - (ScreenTools.defaultFontPixelWidth * 2)
                 height: ScreenTools.defaultFontPixelHeight * 2.6
 
@@ -185,18 +191,17 @@ Item {
                 readonly property int sats: connected ? vehicle.gps.count.rawValue : 0
 
                 // GeoWork state
-                readonly property bool hasToken: GeoWork.tokenStatus === GeoWork.Valid
-                readonly property bool taskActive: GeoWork.stateId && GeoWork.stateId.length > 0
+                readonly property bool hasToken: GeoWork.tokenStatus === 1
+                readonly property bool taskActive: GeoWork.stateId && GeoWork.stateId !== ""
 
                 // Modes
                 readonly property bool modeTransparent: !hasToken
                 readonly property bool modeActive: hasToken && connected && sats >= 3 && taskActive
-                readonly property bool modeOff: hasToken && (!taskActive || !connected || sats < 3)
 
                 Rectangle {
                     anchors.fill: parent
                     color: "transparent"
-                    opacity: airmobisRootGeoworkPodColumnCreateButton.modeTransparent ? 0.20 : 1.0
+                    opacity: createBtn.modeTransparent ? 0.20 : 1.0
 
                     Image {
                         id: cmIcon
@@ -204,18 +209,18 @@ Item {
                         fillMode: Image.PreserveAspectFit
                         width: ScreenTools.defaultFontPixelHeight * 3
                         height: width
-                        visible: !airmobisRootGeoworkPodColumnCreateButton.modeTransparent
-                        // You already have icon-active.svg and icon-off.svg in custom/img
-                        source: airmobisRootGeoworkPodColumnCreateButton.modeActive ? "qrc:/custom/img/icon-active.svg" : "qrc:/custom/img/icon-off.svg"
+                        visible: !createBtn.modeTransparent
+
+                        source: createBtn.modeActive ? "qrc:/custom/img/icon-active.svg" : "qrc:/custom/img/icon-off.svg"
                     }
 
                     MouseArea {
                         anchors.fill: parent
-                        enabled: !airmobisRootGeoworkPodColumnCreateButton.modeTransparent
+                        enabled: !createBtn.modeTransparent
                         onClicked: {
-                            if (airmobisRootGeoworkPodColumnCreateButton.modeActive) {
+                            if (createBtn.modeActive) {
                                 GeoWork.createMarker();
-                            } else if (airmobisRootGeoworkPodColumnCreateButton.modeOff) {
+                            } else if (createBtn.modeOff) {
                                 // Re-fetch to check if a task started meanwhile
                                 var nm = GeoWork.deviceName && GeoWork.deviceName.length ? GeoWork.deviceName : "BLUE001";
                                 GeoWork.checkActiveTaskAndFetchState(nm);
@@ -224,14 +229,55 @@ Item {
                     }
                 }
             }
+
+            GridLayout {
+                id: criteriaIndicator
+
+                columns: 4
+
+                readonly property string enabledColor: "#FFFF00"
+                readonly property string disabledColor: "#B0B0B0"
+
+                // Bearer token.
+                Label {
+                    text: "TOK"
+                    font.bold: true
+                    color: createBtn.hasToken ? criteriaIndicator.enabledColor : criteriaIndicator.disabledColor
+                    Layout.fillWidth: true
+                }
+
+                // Vehicular connection.
+                Label {
+                    text: "CON"
+                    font.bold: true
+                    color: createBtn.connected ? criteriaIndicator.enabledColor : criteriaIndicator.disabledColor
+                    Layout.fillWidth: true
+                }
+
+                // Active task.
+                Label {
+                    text: "TSK"
+                    font.bold: true
+                    color: createBtn.taskActive ? criteriaIndicator.enabledColor : criteriaIndicator.disabledColor
+                    Layout.fillWidth: true
+                }
+
+                // Sufficient sattelite connectivity.
+                Label {
+                    text: "SAT"
+                    font.bold: true
+                    color: createBtn.sats >= 3 ? criteriaIndicator.enabledColor : criteriaIndicator.disabledColor
+                    Layout.fillWidth: true
+                }
+            }
         }
     }
 
     Timer {
-        id: airmobisRootGeoworkHeartbeat
+        id: geoworkHeartbeat
         interval: 3000
         running: true
         repeat: true
-        onTriggered: console.log("[geowork][qml] heartbeat; has GeoWork:", typeof GeoWork !== 'undefined')
+        // onTriggered: console.log("[geowork][qml] heartbeat; has GeoWork:", typeof GeoWork !== 'undefined')
     }
 }

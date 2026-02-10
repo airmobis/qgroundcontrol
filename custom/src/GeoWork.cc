@@ -752,7 +752,7 @@ void GeoWork::reportLocation() {
             return;
         }
 
-        qInfo() << "[GeoWork] /report-location OK";
+        // qInfo() << "[GeoWork] /report-location OK";
         nrep->deleteLater();
     });
 }
