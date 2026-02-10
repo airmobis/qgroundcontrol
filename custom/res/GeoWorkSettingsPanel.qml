@@ -144,7 +144,7 @@ Item {
         title: "Select Geowork token file"
         onAccepted: {
             panel.pickedFileUrl = selectedFile;
-            if (GeoWork.setBearerTokenFromFile(fileUrl)) {
+            if (GeoWork.setBearerTokenFromFile(panel.pickedFileUrl)) {
                 GeoWork.validateToken();  // sets GeoWork.tokenStatus
                 var nm = GeoWork.deviceName && GeoWork.deviceName.length ? GeoWork.deviceName : "BLUE001";
                 GeoWork.checkActiveTaskAndFetchState(nm); // auto-fetch after token change
