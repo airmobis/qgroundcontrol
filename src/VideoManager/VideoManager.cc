@@ -546,13 +546,18 @@ bool VideoManager::_updateSettings(VideoReceiver *receiver)
 
 void VideoManager::_setActiveVehicle(Vehicle *vehicle)
 {
+    qCDebug(VideoManagerLog) << Q_FUNC_INFO << "new vehicle" << vehicle << "old active vehicle" << _activeVehicle;
+
     if (_activeVehicle) {
         (void) disconnect(_activeVehicle->vehicleLinkManager(), &VehicleLinkManager::communicationLostChanged, this, &VideoManager::_communicationLostChanged);
-        MavlinkCameraControl *pCamera = _activeVehicle->cameraManager()->currentCameraInstance();
-        if (pCamera) {
-            pCamera->stopStream();
+        auto cameraManager = _activeVehicle->cameraManager();
+        if (cameraManager) {
+            MavlinkCameraControl *pCamera = cameraManager->currentCameraInstance();
+            if (pCamera) {
+                pCamera->stopStream();
+            }
+            (void) disconnect(cameraManager, &QGCCameraManager::streamChanged, this, &VideoManager::_videoSourceChanged);
         }
-        (void) disconnect(_activeVehicle->cameraManager(), &QGCCameraManager::streamChanged, this, &VideoManager::_videoSourceChanged);
 
         for (VideoReceiver *receiver : std::as_const(_videoReceivers)) {
             // disconnect(receiver->videoStreamInfo(), &QGCVideoStreamInfo::infoChanged, ))
@@ -563,17 +568,23 @@ void VideoManager::_setActiveVehicle(Vehicle *vehicle)
     _activeVehicle = vehicle;
     if (_activeVehicle) {
         (void) connect(_activeVehicle->vehicleLinkManager(), &VehicleLinkManager::communicationLostChanged, this, &VideoManager::_communicationLostChanged);
-        (void) connect(_activeVehicle->cameraManager(), &QGCCameraManager::streamChanged, this, &VideoManager::_videoSourceChanged);
-        MavlinkCameraControl *pCamera = _activeVehicle->cameraManager()->currentCameraInstance();
-        if (pCamera) {
-            pCamera->resumeStream();
+        if (_activeVehicle->cameraManager()) {
+            (void) connect(_activeVehicle->cameraManager(), &QGCCameraManager::streamChanged, this, &VideoManager::_videoSourceChanged);
+            MavlinkCameraControl *pCamera = _activeVehicle->cameraManager()->currentCameraInstance();
+            if (pCamera) {
+                pCamera->resumeStream();
+            }
         }
 
         for (VideoReceiver *receiver : std::as_const(_videoReceivers)) {
-            if (receiver->isThermal()) {
-                receiver->setVideoStreamInfo(_activeVehicle->cameraManager()->thermalStreamInstance());
+            if (_activeVehicle->cameraManager()) {
+                if (receiver->isThermal()) {
+                    receiver->setVideoStreamInfo(_activeVehicle->cameraManager()->thermalStreamInstance());
+                } else {
+                    receiver->setVideoStreamInfo(_activeVehicle->cameraManager()->currentStreamInstance());
+                }
             } else {
-                receiver->setVideoStreamInfo(_activeVehicle->cameraManager()->currentStreamInstance());
+                receiver->setVideoStreamInfo(nullptr);
             }
             // connect(receiver->videoStreamInfo(), &QGCVideoStreamInfo::infoChanged, ))
         }

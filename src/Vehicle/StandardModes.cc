@@ -48,6 +48,7 @@ void StandardModes::gotMessage(MAV_RESULT result, const mavlink_message_t &messa
                 break;
             case MAV_STANDARD_MODE_ORBIT:
                 name = "Orbit";
+                cannotBeSet = true; // These are exposed in the UI as separate buttons
                 break;
             case MAV_STANDARD_MODE_CRUISE:
                 name = "Cruise";
@@ -67,10 +68,6 @@ void StandardModes::gotMessage(MAV_RESULT result, const mavlink_message_t &messa
             case MAV_STANDARD_MODE_TAKEOFF:
                 name = "Takeoff";
                 break;
-        }
-
-        if (name == "Takeoff" || name == "VTOL Takeoff" || name == "Orbit" || name == "Land" || name == "Return") { // These are exposed in the UI as separate buttons
-            cannotBeSet = true;
         }
 
         qCDebug(StandardModesLog) << "Available mode received - name:" << name <<
