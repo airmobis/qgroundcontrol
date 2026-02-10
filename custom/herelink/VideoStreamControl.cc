@@ -88,8 +88,8 @@ void VideoStreamControl::_handleVideoStreamInformation(mavlink_message_t& messag
                                    << "count=" << streamInfo.count
                                    << "resolution=" << streamInfo.resolution_h << "x" << streamInfo.resolution_v;
 
-    // Convert stream_id from 1-based to 0-based for QGC camera setting
-    uint32_t cameraIdZeroBased = (streamInfo.stream_id > 0) ? streamInfo.stream_id - 1 : 0;
+    // stream_id is already 0-based (0 for HDMI 1, 1 for HDMI 2)
+    uint32_t cameraIdZeroBased = streamInfo.stream_id;
 
     // Check if we need to start streaming based on state
     bool shouldStartStreaming = false;

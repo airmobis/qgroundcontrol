@@ -148,7 +148,7 @@ void MAVLinkProtocol::receiveBytes(LinkInterface *link, const QByteArray &data)
                         mavlink_message_t new_message{};
                         mavlink_video_stream_information_t stream_info{};
 
-                        stream_info.stream_id = camera_id + 1;  // Convert to 1-based indexing
+                        stream_info.stream_id = camera_id;  // Keep 0-based indexing
                         stream_info.count = 2;  // Herelink has 2 HDMI inputs
                         stream_info.type = 1;   // VIDEO_STREAM_TYPE_RTSP
                         stream_info.flags = status ? 1 : 0;  // VIDEO_STREAM_STATUS_FLAGS_RUNNING
