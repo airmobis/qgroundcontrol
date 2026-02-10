@@ -2,9 +2,10 @@
 _This file serves to document my experience working with and modifying QGroundControl 5 on my MacBook Air M2, as well as to record potentially helpful information I gathered along the way._
 
 ## Android build requirements
-- Qt 6.6.3
+- [Qt 6.8.3](https://my.qt.io/download)
 - GStreamer 1.22.0-1.24.13
-    - 1.26+ causes configure errors. Should be fixed soon enough by QGC maintainers.
+    - 1.26+ causes configure errors. An [issue](https://github.com/mavlink/qgroundcontrol/issues/13049) exists for this.
+    - On macOS, prefer installing from the [official website](https://gstreamer.freedesktop.org/download/#macos) over Homebrew.
 - Android CLI Tools
     - Build Tools r35 (`build-tools;35.0.0`)
     - NDK 25.1 (`ndk;25.1.8937393`)
@@ -13,7 +14,7 @@ _This file serves to document my experience working with and modifying QGroundCo
 
 ## Initial build
 - GStreamer didn't provide its own `FindGStreamer.cmake` on macOS before 1.26, so both QGroundControl and Qt6 have their own
-    - With 1.26, it's necessary to **prepend** its directory to `CMAKE_MODULE_PATH`, or the Qt version gets tried first and fails.
+    - With 1.26, it's necessary to **prepend** its directory to `CMAKE_MODULE_PATH`, else the Qt version gets tried first and fails.
 - However, CMake configuration still fails due to unknown breaking changes in GStreamer 1.26 (see [this issue](https://github.com/mavlink/qgroundcontrol/issues/13049)).
     - I had to downgrade to 1.24 via Homebrew commit `d59e37b5bebd3b7f8d6ddb6bc3483b8f9d3182d2`.
     - However, this version doesn’t include a `FindGStreamer.cmake` file, so I copied it manually from 1.26, and it worked!
@@ -25,21 +26,24 @@ _This file serves to document my experience working with and modifying QGroundCo
 
 ## clangd integration
 - As mentioned above, the `custom` directory _seems_ like its own module, but it's really dependent on QGC's APIs, which confuses clangd. To ease the pain, I decided to replace the `CMakeLists.txt` with a `config.cmake` file, which essentially runs the same logic, but ensures language server integration with the entire project.
-    - A modification in the top-level `CMakeLists.txt` was required&mdash;I replaced `add_subdirectory(custom)` with `include(custom/config.cmake)` on line 261.
+    - A modification in the top-level `CMakeLists.txt` was required—I replaced `add_subdirectory(custom)` with `include(custom/config.cmake)` on line 261.
+
+## macOS tomfoolery
+- `AGL.framework` could not be found on macOS Tahoe (since it doesn't ship with Xcode 26). This is **fixed in Qt 6.9.2**.
 
 ## Porting the Herelink plugin
 - The `cameraId` parameter seems to have been changed from an integer type to a `QString`.
 - Plugins and other manager classes are now accessible via a static `instance()` method.
-- There were some undefined symbols during linking&mdash;turns out Qt's MOC needs header files to be added as target sources as well. Compilation was sucessful after that[^1].
+- There were some undefined symbols during linking—turns out Qt's MOC needs header files to be added as target sources as well. Compilation was sucessful after that[^1].
 - Afterwards, the compiled `QGroundControl-herelink.app` would crash right after launching; I tracked it down to `SettingsFact.cc:37`, where it became clear that the crash was due to `CustomPlugin` not overriding `QGCCorePlugin::instance()`[^2].
 
 > [!CAUTION]
 > The QGC-Herelink project made changes in QGC's source code to create and connect their own `VideoStreamControl`, specifically in `src/VideoManager/VideoManager{.h, .cc}`.
-> I am unsure as to whether this is necessary for the port... stay tuned&trade;.
+> I am unsure as to whether this is necessary for the port... stay tuned™.
 
 ## Configuring for Android
 - QGroundControl 5 migrated to pure CMake, so we'll try and do the same, instead of going down a rabbit hole with Qt Creator.
-    - After installing the Android toolchain along with NDK r26b and build-tools 26.3, everything seemed OK, but the project has one last error up its sleeve&mdash;Qt6LinguistTools could apparently not be located! After some hair-tearing, I finally found the fix: Including LinguistTools by themselves in QGC's `CMakeLists.txt` fixed the problem.
+    - After installing the Android toolchain along with NDK r26b and build-tools 26.3, everything seemed OK, but the project has one last error up its sleeve—Qt6LinguistTools could apparently not be located! After some hair-tearing, I finally found the fix: Including LinguistTools by themselves in QGC's `CMakeLists.txt` fixed the problem.
     - The APK refused to build because my `sdkmanager` packages were outdated (min. `build-tools;35.0.0` and `platforms;android-34`). Easy enough to upgrade.
 
 ## Changes from upstream (excl. custom directory)
