@@ -1,6 +1,6 @@
-set(QGC_APP_NAME "QGroundControl-Herelink" CACHE STRING "App Name" FORCE)
+set(QGC_APP_NAME "QGroundControl-Airmobis" CACHE STRING "App Name" FORCE)
 set(QGC_APP_COPYRIGHT "Copyright (c) 2025 Airmobis. All rights reserved." CACHE STRING "Copyright" FORCE)
-set(QGC_APP_DESCRIPTION "Open Source Ground Control App (Modified for Herelink)" CACHE STRING "Description" FORCE)
+set(QGC_APP_DESCRIPTION "Open Source Ground Control App (Modified for Airmobis)" CACHE STRING "Description" FORCE)
 set(QGC_ORG_NAME "Airmobis" CACHE STRING "Org Name" FORCE)
 set(QGC_ORG_DOMAIN "airmobis.com" CACHE STRING "Domain" FORCE)
 set(QGC_PACKAGE_NAME "com.airmobis.qgroundcontrol" CACHE STRING "Package Name" FORCE)
