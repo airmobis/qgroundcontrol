@@ -28,7 +28,7 @@ class PlanMasterController : public QObject
     Q_OBJECT
     Q_MOC_INCLUDE("QmlObjectListModel.h")
     Q_MOC_INCLUDE("Vehicle.h")
-    
+
 public:
     PlanMasterController(QObject* parent = nullptr);
 #ifdef QT_DEBUG
@@ -83,6 +83,9 @@ public:
     Q_INVOKABLE void saveToKml(const QString& filename);
     Q_INVOKABLE void removeAll(void);                       ///< Removes all from controller only, synce required to remove from vehicle
     Q_INVOKABLE void removeAllFromVehicle(void);            ///< Removes all from vehicle and controller
+
+    // NOTE: GeoWork-specific
+    Q_INVOKABLE void uploadToGeoWork(const QString& bearerToken);
 
     MissionController*      missionController(void)     { return &_missionController; }
     GeoFenceController*     geoFenceController(void)    { return &_geoFenceController; }

@@ -27,6 +27,7 @@ import QGroundControl.ShapeFileHelper
 import QGroundControl.FlightDisplay
 import QGroundControl.UTMSP
 
+import GeoWork 1.0
 
 Item {
     id: _root
@@ -381,7 +382,7 @@ Item {
 				if(_utmspEnabled){
                 	QGroundControl.utmspManager.utmspVehicle.updateLastCoordinates(coordinate.latitude, coordinate.longitude)
                 }
-                
+
                 switch (_editingLayer) {
                 case _layerMission:
                     if (addWaypointRallyPointAction.checked) {
@@ -1110,6 +1111,20 @@ Item {
                         }
                         dropPanel.hide()
                         _planMasterController.saveKmlToSelectedFile()
+                    }
+                }
+
+                // NOTE: GeoWork-specific
+                QGCButton {
+                    Layout.columnSpan:  3
+                    Layout.fillWidth:   true
+
+                    text:               "Upload to GeoWork"
+                    enabled:            !_planMasterController.syncInProgress && _visualItems.count > 1 && GeoWork.projectId !== ""
+
+                    onClicked: {
+                        dropPanel.hide()
+                        _planMasterController.uploadToGeoWork(GeoWork.bearerToken)
                     }
                 }
             }

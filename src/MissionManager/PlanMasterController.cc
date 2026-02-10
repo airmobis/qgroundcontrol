@@ -28,6 +28,8 @@
 
 #include <QtCore/QJsonDocument>
 #include <QtCore/QFileInfo>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 
 QGC_LOGGING_CATEGORY(PlanMasterControllerLog, "PlanMasterControllerLog")
 
@@ -525,6 +527,40 @@ void PlanMasterController::removeAllFromVehicle(void)
     } else {
         qWarning() << "PlanMasterController::removeAllFromVehicle called while offline";
     }
+}
+
+// https://stackoverflow.com/a/60107834
+void PlanMasterController::uploadToGeoWork(const QString& bearerToken) {
+    QNetworkAccessManager* mgr { new QNetworkAccessManager { this } };
+
+    QNetworkRequest request {
+        QUrl { QStringLiteral("https://api.geowork.mobis1.com/vehicles-reporting/flight-plan") }
+    };
+
+    request.setHeader(
+        QNetworkRequest::ContentTypeHeader,
+        "application/json"
+    );
+
+    request.setRawHeader(
+        QByteArrayLiteral("Authorization"),
+        bearerToken.toUtf8()
+    );
+
+    QNetworkReply* reply { mgr->put(
+        request,
+        saveToJson().toJson()
+    ) };
+
+    connect(reply, &QNetworkReply::finished, [=]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            qDebug() << "[GeoWork] Request OK:" << QString::fromUtf8(reply->readAll());
+        } else {
+            qDebug() << "[GeoWork] Request failed:" << (int)reply->error() << '/' << reply->readAll();
+        }
+
+        reply->deleteLater();
+    });
 }
 
 bool PlanMasterController::containsItems(void) const
