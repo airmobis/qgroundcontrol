@@ -2,14 +2,9 @@ qt_add_library(gstqml6gl STATIC)
 
 find_package(PkgConfig)
 
-pkg_check_modules(GST REQUIRED IMPORTED_TARGET
-    gstreamer-1.0
-    gstreamer-gl-1.0
-    gstreamer-rtsp-1.0
-)
-
 target_link_libraries(gstqml6gl PUBLIC
-    PkgConfig::GST
+	PkgConfig::GST_REQ
+	PkgConfig::GST_OPT
 )
 
 # if(GST_PLUGIN_qml6_FOUND)
