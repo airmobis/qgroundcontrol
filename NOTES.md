@@ -30,6 +30,8 @@ _This file serves to document my experience working with and modifying QGroundCo
 
 ## macOS tomfoolery
 - `AGL.framework` could not be found on macOS Tahoe (since it doesn't ship with Xcode 26). This is **fixed in Qt 6.9.2**.
+    - Since compilation using Qt 6.9 was enabled in [v5.0.8](https://github.com/mavlink/qgroundcontrol/releases/tag/v5.0.8), I modified
+    CMakeLists.txt to accept not only Qt 6.8.3, but up to version 6.9.2. As such, this version should be compatible with both Linux and macOS.
 
 ## Porting the Herelink plugin
 - The `cameraId` parameter seems to have been changed from an integer type to a `QString`.

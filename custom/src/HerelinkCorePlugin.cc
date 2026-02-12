@@ -18,7 +18,6 @@ HerelinkCorePlugin::HerelinkCorePlugin(QObject* parent)
     , m_herelinkOptions { this, parent }
     , m_qml { nullptr }
     , m_url { nullptr } {
-    // qCDebug(HerelinkCorePluginLog) << "[HERELINK] HerelinkCorePlugin::HerelinkCorePlugin() called";
 }
 
 QGCCorePlugin* HerelinkCorePlugin::instance() {
@@ -53,8 +52,6 @@ bool HerelinkCorePlugin::overrideSettingsGroupVisibility(const QString& name) {
 }
 
 bool HerelinkCorePlugin::adjustSettingMetaData(const QString& settingsGroup, FactMetaData& metaData) {
-    // qCDebug(HerelinkCorePluginLog) << "[HERELINK] HerelinkCorePlugin::adjustSettingMetaData() called";
-
     if (settingsGroup == AppSettings::settingsGroup) {
         // Default Herelink font size of 10, nice starting point.
         if (metaData.name() == AppSettings::appFontPointSizeName) {
@@ -91,7 +88,7 @@ bool HerelinkCorePlugin::adjustSettingMetaData(const QString& settingsGroup, Fac
             };
 
             for (const std::string_view dahs : disabledAndHiddenSettings) {
-                if (metaData.name() == dahs.data()) {
+                if (metaData.name() == dahs) {
                     metaData.setRawDefaultValue(false);
                 }
             }
@@ -112,8 +109,6 @@ bool HerelinkCorePlugin::adjustSettingMetaData(const QString& settingsGroup, Fac
 }
 
 void HerelinkCorePlugin::activeVehicleChanged(Vehicle* activeVehicle) {
-    // qCDebug(HerelinkCorePluginLog) << "[HERELINK] HerelinkCorePlugin::activeVehicleChanged() called";
-
     if (activeVehicle == nullptr) {
         return;
     }

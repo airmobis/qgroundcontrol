@@ -4,6 +4,7 @@
 #include "VideoSettings.h"
 
 #include "QGCLoggingCategory.h"
+
 #include <QDebug>
 
 QGC_LOGGING_CATEGORY(VideoStreamControlLog, "VideoStreamControlLog")
@@ -34,7 +35,6 @@ void VideoStreamControl::mavlinkMessageReceived(LinkInterface* link, const mavli
 }
 
 void VideoStreamControl::settingInProgressTimeout() {
-    qCDebug(VideoStreamControlLog) << "Timeout to setting camera, unlock UI!";
     setSettingInProgress(false);
 }
 

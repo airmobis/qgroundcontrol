@@ -36,11 +36,12 @@
 namespace {
     // REST endpoints.
     constexpr std::string_view
-        kUrlSession { "https://api.geowork.mobis1.com/vehicles-reporting/session" },
-        kUrlState { "https://api.geowork.mobis1.com/vehicles-reporting/project-marker-state" },
-        kUrlMarker { "https://api.geowork.mobis1.com/vehicles-reporting/markers/create" },
-        kUrlReportLocation { "https://api.geowork.mobis1.com/vehicles-reporting/report-location" };
+        kUrlSession { "https://api.GeoWork.mobis1.com/vehicles-reporting/session" },
+        kUrlState { "https://api.GeoWork.mobis1.com/vehicles-reporting/project-marker-state" },
+        kUrlMarker { "https://api.GeoWork.mobis1.com/vehicles-reporting/markers/create" },
+        kUrlReportLocation { "https://api.GeoWork.mobis1.com/vehicles-reporting/report-location" };
 
+    // Drop-in replacement for the eponymous C++17 STL function.
     template <typename E>
     constexpr std::underlying_type_t<E> to_underlying(E e) {
         return static_cast<std::underlying_type_t<E>>(e);
@@ -435,7 +436,7 @@ void GeoWork::createMarker() {
             qInfo() << "[GeoWork] Marker created (no id field)";
         }
 
-        qInfo() << "[geowork] createMarker(): success, calling AddPhoto";
+        qInfo() << "[GeoWork] createMarker(): success, calling AddPhoto";
         AddPhotoForMarker(markerId);
 
         reply->deleteLater();
@@ -563,27 +564,26 @@ namespace {
 void GeoWork::reportLocation() {
     // --- Guards ---
     if (_bearerToken.isEmpty()) {
-        // qWarning() << "[GeoWork] reportLocation(): No bearer token set.";
         return;
     }
 
-    if (!qgcApp() /* || !qgcApp()->toolbox() */) {
-        qWarning() << "[GeoWork] reportLocation(): App/toolbox not ready.";
+    if (!qgcApp()) {
         return;
     }
 
     MultiVehicleManager* mvm { MultiVehicleManager::instance() };
-    Vehicle*             vehicle = mvm != nullptr ? mvm->activeVehicle() : nullptr;
+    if (!mvm) {
+        return;
+    }
 
+    Vehicle* vehicle { mvm->activeVehicle() };
     if (!vehicle) {
-        qWarning() << "[GeoWork] reportLocation(): No active vehicle.";
         return;
     }
 
     // --- GPS position (required) ---
     const QGeoCoordinate coord { vehicle->coordinate() };
     if (!coord.isValid()) {
-        qWarning() << "[GeoWork] reportLocation(): Active vehicle coordinate invalid.";
         return;
     }
 
@@ -760,11 +760,11 @@ void GeoWork::reportLocation() {
 // ======== Minimal additions: frame capture to Downloads ========
 void GeoWork::setVideoItem(QObject* videoItem) {
     _videoItemObj = videoItem;
-    qInfo() << "[geowork] setVideoItem:" << videoItem;
+    qInfo() << "[GeoWork] setVideoItem:" << videoItem;
 }
 
 void GeoWork::AddPhoto() {
-    qInfo() << "[geowork] AddPhoto(): invoked";
+    qInfo() << "[GeoWork] AddPhoto(): invoked";
 
     // Must run on GUI thread for grabToImage
     if (QThread::currentThread() != qApp->thread()) {
@@ -777,10 +777,10 @@ void GeoWork::AddPhoto() {
 }
 
 void GeoWork::captureAndSave() {
-    qInfo() << "[geowork] _captureAndSave(): begin";
+    qInfo() << "[GeoWork] _captureAndSave(): begin";
     QQuickItem* item { qobject_cast<QQuickItem*>(_videoItemObj) };
     if (!item) {
-        qWarning() << "[geowork] AddPhoto: video item not set";
+        qWarning() << "[GeoWork] AddPhoto: video item not set";
         emit photoSaveFailed(QStringLiteral("Video item not set. Call setVideoItem(...) first."));
 
         return;
@@ -788,7 +788,7 @@ void GeoWork::captureAndSave() {
 
     QSharedPointer<QQuickItemGrabResult> grab = item->grabToImage();
     if (!grab) {
-        qWarning() << "[geowork] AddPhoto: grabToImage returned null";
+        qWarning() << "[GeoWork] AddPhoto: grabToImage returned null";
         emit photoSaveFailed(QStringLiteral("grabToImage returned null."));
 
         return;
@@ -797,7 +797,7 @@ void GeoWork::captureAndSave() {
     QObject::connect(grab.data(), &QQuickItemGrabResult::ready, this, [this, grab]() {
         const QImage img { grab->image() };
         if (img.isNull()) {
-            qWarning() << "[geowork] AddPhoto: captured image is null";
+            qWarning() << "[GeoWork] AddPhoto: captured image is null";
             emit photoSaveFailed(QStringLiteral("Captured image is null."));
             return;
         }
@@ -825,15 +825,15 @@ void GeoWork::captureAndSave() {
             return;
         }
 
-        qInfo() << "[geowork] Saved frame to" << filePath;
+        qInfo() << "[GeoWork] Saved frame to" << filePath;
 
         emit photoSaved(filePath);
     });
 }
 
-// ======== geowork: auto-bind video item by scanning QML scene ========
+// ======== GeoWork: auto-bind video item by scanning QML scene ========
 void GeoWork::autoBindVideo() {
-    qInfo() << "[geowork] autoBindVideo(): start";
+    qInfo() << "[GeoWork] autoBindVideo(): start";
 
     const QWindowList wins { QGuiApplication::allWindows() };
     for (QWindow* w : wins) {
@@ -849,13 +849,13 @@ void GeoWork::autoBindVideo() {
         if (hit) {
             _videoItemObj = hit;
 
-            qInfo() << "[geowork] autoBindVideo(): found item" << hit << "objectName=" << hit->objectName()
+            qInfo() << "[GeoWork] autoBindVideo(): found item" << hit << "objectName=" << hit->objectName()
                     << "class=" << hit->metaObject()->className();
             return;
         }
     }
 
-    qWarning() << "[geowork] autoBindVideo(): no video item found";
+    qWarning() << "[GeoWork] autoBindVideo(): no video item found";
 }
 
 QQuickItem* GeoWork::findVideoItemRecursive(QQuickItem* item) const {
@@ -885,9 +885,9 @@ QQuickItem* GeoWork::findVideoItemRecursive(QQuickItem* item) const {
 }
 
 void GeoWork::AddPhotoForMarker(const QString& markerId) {
-    qInfo() << "[geowork] AddPhotoForMarker(): invoked markerId=" << markerId;
+    qInfo() << "[GeoWork] AddPhotoForMarker(): invoked markerId=" << markerId;
     if (markerId.isEmpty()) {
-        qWarning() << "[geowork] AddPhotoForMarker(): empty markerId";
+        qWarning() << "[GeoWork] AddPhotoForMarker(): empty markerId";
         return;
     }
 
@@ -899,20 +899,20 @@ void GeoWork::AddPhotoForMarker(const QString& markerId) {
 
     QQuickItem* item { qobject_cast<QQuickItem*>(_videoItemObj) };
     if (!item) {
-        qWarning() << "[geowork] AddPhotoForMarker(): video item not set";
+        qWarning() << "[GeoWork] AddPhotoForMarker(): video item not set";
         return;
     }
 
     QSharedPointer<QQuickItemGrabResult> grab { item->grabToImage() };
     if (!grab) {
-        qWarning() << "[geowork] AddPhotoForMarker(): grabToImage returned null";
+        qWarning() << "[GeoWork] AddPhotoForMarker(): grabToImage returned null";
         return;
     }
 
     QObject::connect(grab.data(), &QQuickItemGrabResult::ready, this, [this, markerId, grab]() {
         const QImage img { grab->image() };
         if (img.isNull()) {
-            qWarning() << "[geowork] AddPhotoForMarker(): captured image is null";
+            qWarning() << "[GeoWork] AddPhotoForMarker(): captured image is null";
             return;
         }
 
@@ -933,11 +933,11 @@ void GeoWork::AddPhotoForMarker(const QString& markerId) {
         writer.setQuality(90);
 
         if (!writer.write(img)) {
-            qWarning() << "[geowork] AddPhotoForMarker(): failed to write JPEG:" << writer.errorString();
+            qWarning() << "[GeoWork] AddPhotoForMarker(): failed to write JPEG:" << writer.errorString();
             return;
         }
 
-        qInfo() << "[geowork] Saved frame to" << filePath;
+        qInfo() << "[GeoWork] Saved frame to" << filePath;
 
         // Then upload it to a marker (like Python).
         uploadPhotoToMarker(markerId, filePath);
@@ -946,13 +946,13 @@ void GeoWork::AddPhotoForMarker(const QString& markerId) {
 
 void GeoWork::uploadPhotoToMarker(const QString& markerId, const QString& photoPath) {
     if (_bearerToken.isEmpty()) {
-        qWarning() << "[geowork] _uploadPhotoToMarker(): No bearer token set";
+        qWarning() << "[GeoWork] _uploadPhotoToMarker(): No bearer token set";
         return;
     }
 
     QFileInfo fi { photoPath };
     if (!fi.exists() || !fi.isFile()) {
-        qWarning() << "[geowork] _uploadPhotoToMarker(): file missing" << photoPath;
+        qWarning() << "[GeoWork] _uploadPhotoToMarker(): file missing" << photoPath;
         return;
     }
 
@@ -960,7 +960,7 @@ void GeoWork::uploadPhotoToMarker(const QString& markerId, const QString& photoP
     QString pathToUpload { photoPath };
 
     // Build URL: .../vehicles-reporting/markers/add-image?marker=<id>
-    QUrl      url(QString::fromUtf8("https://api.geowork.mobis1.com/vehicles-reporting/markers/add-image"));
+    QUrl      url(QString::fromUtf8("https://api.GeoWork.mobis1.com/vehicles-reporting/markers/add-image"));
     QUrlQuery q;
 
     q.addQueryItem(QStringLiteral("marker"), markerId);
@@ -973,7 +973,7 @@ void GeoWork::uploadPhotoToMarker(const QString& markerId, const QString& photoP
     QFile& file { *new QFile(pathToUpload, this) };
 
     if (!file.open(QIODevice::ReadOnly)) {
-        qWarning() << "[geowork] _uploadPhotoToMarker(): cannot open" << pathToUpload;
+        qWarning() << "[GeoWork] _uploadPhotoToMarker(): cannot open" << pathToUpload;
         file.deleteLater();
 
         return;
@@ -993,7 +993,7 @@ void GeoWork::uploadPhotoToMarker(const QString& markerId, const QString& photoP
     file.setParent(&multi);
     multi.append(filePart);
 
-    qInfo() << "[geowork] POST" << url.toString() << "file=" << fi.fileName();
+    qInfo() << "[GeoWork] POST" << url.toString() << "file=" << fi.fileName();
 
     QNetworkReply& reply { *_nam.post(req, &multi) };
 
@@ -1007,10 +1007,10 @@ void GeoWork::uploadPhotoToMarker(const QString& markerId, const QString& photoP
             photoPath { reply.property("gw_photoPath").toString() };
 
         if (reply.error() != QNetworkReply::NoError) {
-            qWarning() << "[geowork] /markers/add-image error:" << reply.errorString() << "markerId =" << markerId;
+            qWarning() << "[GeoWork] /markers/add-image error:" << reply.errorString() << "markerId =" << markerId;
         } else {
             const QByteArray body = reply.readAll();
-            qInfo() << "[geowork] /markers/add-image OK, bytes:" << body.size() << "markerId =" << markerId;
+            qInfo() << "[GeoWork] /markers/add-image OK, bytes:" << body.size() << "markerId =" << markerId;
         }
 
         reply.deleteLater();

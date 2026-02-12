@@ -4,9 +4,9 @@
 #include <QUrl>
 
 QUrl UrlInterceptor::intercept(const QUrl& url, QQmlAbstractUrlInterceptor::DataType type) {
-    switch (type) {
-        using enum QQmlAbstractUrlInterceptor::DataType;
+    using enum QQmlAbstractUrlInterceptor::DataType;
 
+    switch (type) {
     case QmlFile:
     case UrlString:
         if (url.scheme() == QStringLiteral("qrc")) {
@@ -24,6 +24,7 @@ QUrl UrlInterceptor::intercept(const QUrl& url, QQmlAbstractUrlInterceptor::Data
             }
         }
         break;
+
     default:
         break;
     }

@@ -7,7 +7,7 @@ Non-exhaustive list of changes:
 | MAVLink                                                                 | Airmobis                                                 | Reaason                                                       |
 |-------------------------------------------------------------------------|----------------------------------------------------------|---------------------------------------------------------------|
 | Custom plugin has own CMakeLists.txt; included via `add_subdirectory()` | Custom plugin has config.cmake; included via `include()` | Tooling doesn't see QGC APIs otherwise                        |
-| macOS GStreamer found via dark magic                                    | macOS GStreamer found via pkg-config                     | Enables the installation of GStreamer as a framework on macOS |
+| macOS GStreamer found via dark magic                                    | macOS GStreamer found via pkg-config                     | Enables platform-independent way of installing GStreamer      |
 | Unmodified `PlanMasterController`                                       | Additional `uploadToGeoWork()` method                    | Enables usage of said method in Plan View                     |
 
 Below is the README of the original QGroundControl repository.

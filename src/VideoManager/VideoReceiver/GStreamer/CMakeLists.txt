@@ -4,12 +4,22 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE VideoItemStub.h)
 if(QGC_ENABLE_GST_VIDEOSTREAMING)
     find_package(PkgConfig)
 
-    pkg_check_modules(GST REQUIRED IMPORTED_TARGET gstreamer-1.0)
-    pkg_check_modules(GST_BASE REQUIRED IMPORTED_TARGET gstreamer-base-1.0)
-    pkg_check_modules(GST_VIDEO REQUIRED IMPORTED_TARGET gstreamer-video-1.0)
-    pkg_check_modules(GST_GL REQUIRED IMPORTED_TARGET gstreamer-gl-1.0)
-    pkg_check_modules(GST_GLP REQUIRED IMPORTED_TARGET gstreamer-gl-prototypes-1.0)
-    pkg_check_modules(GST_RTSP REQUIRED IMPORTED_TARGET gstreamer-rtsp-1.0)
+    # Mandatory GStreamer components
+    pkg_check_modules(GST_REQ REQUIRED IMPORTED_TARGET
+        gstreamer-1.0
+        gstreamer-base-1.0
+        gstreamer-video-1.0
+        gstreamer-gl-1.0
+        gstreamer-gl-prototypes-1.0
+        gstreamer-rtsp-1.0
+    )
+
+    # Optional ones
+    pkg_check_modules(GST_OPT IMPORTED_TARGET
+        gstreamer-gl-egl-1.0
+        gstreamer-gl-wayland-1.0
+        gstreamer-gl-x11-1.0
+    )
 
     add_subdirectory(gstqml6gl)
     # TODO: https://gstreamer.freedesktop.org/documentation/qt6d3d11/index.html#qml6d3d11sink-page

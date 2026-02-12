@@ -1,20 +1,16 @@
 qt_add_library(gstqml6gl STATIC)
 
-if(MACOS)
-    find_package(PkgConfig)
+find_package(PkgConfig)
 
-    pkg_check_modules(GSTREAMER REQUIRED IMPORTED_TARGET gstreamer-1.0)
-    pkg_check_modules(GSTREAMER_GL REQUIRED IMPORTED_TARGET gstreamer-gl-1.0)
-    pkg_check_modules(GSTREAMER_RTSP REQUIRED IMPORTED_TARGET gstreamer-rtsp-1.0)
+pkg_check_modules(GST REQUIRED IMPORTED_TARGET
+    gstreamer-1.0
+    gstreamer-gl-1.0
+    gstreamer-rtsp-1.0
+)
 
-    target_link_libraries(gstqml6gl PUBLIC
-        PkgConfig::GSTREAMER
-        PkgConfig::GSTREAMER_GL
-        PkgConfig::GSTREAMER_RTSP
-    )
-else()
-    target_link_libraries(gstqml6gl PUBLIC GStreamer::GStreamer)
-endif()
+target_link_libraries(gstqml6gl PUBLIC
+    PkgConfig::GST
+)
 
 # if(GST_PLUGIN_qml6_FOUND)
 #     # Don't Download & Build if gstreamer1.0-qt6 gstqml6 was found
