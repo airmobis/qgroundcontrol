@@ -3,8 +3,8 @@ qt_add_library(gstqml6gl STATIC)
 find_package(PkgConfig)
 
 target_link_libraries(gstqml6gl PUBLIC
-	PkgConfig::GST_REQ
-	PkgConfig::GST_OPT
+    PkgConfig::GST_REQ
+    $<TARGET_NAME_IF_EXISTS:PkgConfig::GST_OPT>
 )
 
 # if(GST_PLUGIN_qml6_FOUND)
