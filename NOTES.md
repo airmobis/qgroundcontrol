@@ -33,6 +33,14 @@ _This file serves to document my experience working with and modifying QGroundCo
     - Since compilation using Qt 6.9 was enabled in [v5.0.8](https://github.com/mavlink/qgroundcontrol/releases/tag/v5.0.8), I modified
     CMakeLists.txt to accept not only Qt 6.8.3, but up to version 6.9.2. As such, this version should be compatible with both Linux and macOS.
 
+## Non-functioning camera on Linux
+- Camera/windowing capabilities are **checked at compile time**
+- I found this out via setting `GST_DEBUG=2` and running the compiled app
+- The error became apparent in `gst_qml6_get_gl_wrapcontext()`[^4], where a bunch of `#ifdef`-s checks the host platform
+- No platform was found, so the function compiled down to an error, no matter where it was ran
+- **TL;DR:** If you compile without all necessary GStreamer libraries, camera functionality won't be compiled in
+    - Install these dependencies via `tools/setup/install-dependencies-[your platform].sh`
+
 ## Porting the Herelink plugin
 - The `cameraId` parameter seems to have been changed from an integer type to a `QString`.
 - Plugins and other manager classes are now accessible via a static `instance()` method.
@@ -56,9 +64,10 @@ _These can also be queried via `git diff upstream/Stable_V5.0 origin/Stable_V5.0
 - Modified `find_package()` logic for GStreamer in `src/VideoManager/VideoReceiver/GStreamer/gstqml6gl/CMakeLists.txt`
 - Modified `CMakeLists.txt` to include Linguist instead of LinguistTools[^3]
 - Removed `cmake/modules/FindGStreamer.cmake`
-- Removed `QGC_CPM_SOURCE_CACHE`[^4]
+- Removed `QGC_CPM_SOURCE_CACHE`[^5]
 
 [^1]: Fixed in commit 139d4109d740aa7eb96b23e68ec3738f59a7d97f.
 [^2]: Fixed in commit aba10c93ee2056866fc87b7f1afe09a38d401616.
-[^3]: Modified in commit 5e3feac9ab615fdcacdd2f009871f655cc3f3e76
-[^4]: Removed in commit e41985c7decf225f9cff198ccc9efd5fd2f2ff4c.
+[^3]: Modified in commit 5e3feac9ab615fdcacdd2f009871f655cc3f3e76.
+[^4]: `src/VideoManager/VideoReceiver/GStreamer/gstqml6gl/qt6/gstqt6glutility.cc:186`
+[^5]: Removed in commit e41985c7decf225f9cff198ccc9efd5fd2f2ff4c.
