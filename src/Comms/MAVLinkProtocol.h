@@ -24,10 +24,11 @@ Q_DECLARE_LOGGING_CATEGORY(MAVLinkProtocolLog)
 /// MAVLink micro air vehicle protocol reference implementation.
 /// MAVLink is a generic communication protocol for micro air vehicles.
 /// for more information, please see the official website: https://mavlink.io
-class MAVLinkProtocol : public QObject {
+class MAVLinkProtocol : public QObject
+{
     Q_OBJECT
 
-   public:
+public:
     /// Constructs an MAVLinkProtocol object.
     ///     @param parent The parent QObject.
     explicit MAVLinkProtocol(QObject *parent = nullptr);
@@ -70,18 +71,16 @@ class MAVLinkProtocol : public QObject {
     /// Give the user an option to save these orphaned files.
     void checkForLostLogFiles();
 
-   signals:
+signals:
     /// Heartbeat received on link
-    void vehicleHeartbeatInfo(LinkInterface *link, int vehicleId, int componentId, int vehicleFirmwareType,
-                              int vehicleType);
+    void vehicleHeartbeatInfo(LinkInterface *link, int vehicleId, int componentId, int vehicleFirmwareType, int vehicleType);
 
     /// Message received and directly copied via signal
     void messageReceived(LinkInterface *link, const mavlink_message_t &message);
 
-    void mavlinkMessageStatus(int sysid, uint64_t totalSent, uint64_t totalReceived, uint64_t totalLoss,
-                              float lossPercent);
+    void mavlinkMessageStatus(int sysid, uint64_t totalSent, uint64_t totalReceived, uint64_t totalLoss, float lossPercent);
 
-   public slots:
+public slots:
     /// Receive bytes from a communication interface and constructs a MAVLink packet
     ///     @param link The interface to read from
     void receiveBytes(LinkInterface *link, const QByteArray &data);
@@ -94,10 +93,10 @@ class MAVLinkProtocol : public QObject {
     /// Deletes any log files which are in the temp directory
     static void deleteTempLogFiles();
 
-   private slots:
+private slots:
     void _vehicleCountChanged();
 
-   private:
+private:
     void _logData(LinkInterface *link, const mavlink_message_t &message);
     bool _closeLogFile();
     void _startLogging();
@@ -107,21 +106,20 @@ class MAVLinkProtocol : public QObject {
     void _forwardSupport(const mavlink_message_t &message);
 
     void _updateCounters(uint8_t mavlinkChannel, const mavlink_message_t &message);
-    bool _updateStatus(LinkInterface *link, const SharedLinkInterfacePtr linkPtr, uint8_t mavlinkChannel,
-                       const mavlink_message_t &message);
+    bool _updateStatus(LinkInterface *link, const SharedLinkInterfacePtr linkPtr, uint8_t mavlinkChannel, const mavlink_message_t &message);
     void _updateVersion(LinkInterface *link, uint8_t mavlinkChannel);
 
     void _saveTelemetryLog(const QString &tempLogfile);
     bool _checkTelemetrySavePath();
 
-    QGCTemporaryFile *const _tempLogFile = nullptr;
+    QGCTemporaryFile * const _tempLogFile = nullptr;
 
-    bool _logSuspendError = false;   ///< true: Logging suspended due to error
-    bool _logSuspendReplay = false;  ///< true: Logging suspended due to replay
-    bool _vehicleWasArmed = false;   ///< true: Vehicle was armed during log sequence
+    bool _logSuspendError = false;  ///< true: Logging suspended due to error
+    bool _logSuspendReplay = false; ///< true: Logging suspended due to replay
+    bool _vehicleWasArmed = false;  ///< true: Vehicle was armed during log sequence
 
-    uint8_t _lastIndex[256][256]{};  ///< Store the last received sequence ID for each system/component pair
-    QSet<QPair<uint8_t, uint8_t>> _firstMessageSeen;
+    uint8_t _lastIndex[256][256]{};                             ///< Store the last received sequence ID for each system/component pair
+    QSet<QPair<uint8_t,uint8_t>> _firstMessageSeen;
     uint64_t _totalReceiveCounter[MAVLINK_COMM_NUM_BUFFERS]{};  ///< The total number of successfully received messages
     uint64_t _totalLossCounter[MAVLINK_COMM_NUM_BUFFERS]{};     ///< Total messages lost during transmission.
     float _runningLossPercent[MAVLINK_COMM_NUM_BUFFERS]{};      ///< Loss rate
@@ -129,8 +127,8 @@ class MAVLinkProtocol : public QObject {
     unsigned _currentVersion = 100;
     bool _initialized = false;
 
-    static constexpr const char *_tempLogFileTemplate = "FlightDataXXXXXX";  ///< Template for temporary log file
-    static constexpr const char *_logFileExtension = "mavlink";              ///< Extension for log files
+    static constexpr const char *_tempLogFileTemplate = "FlightDataXXXXXX"; ///< Template for temporary log file
+    static constexpr const char *_logFileExtension = "mavlink";             ///< Extension for log files
 
     static constexpr uint8_t kMaxCompId = MAV_COMPONENT_ENUM_END - 1;
 };
