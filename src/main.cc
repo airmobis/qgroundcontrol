@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
 #ifdef Q_OS_MACOS
     // Prevent Apple's app nap from screwing us over
     // tip: the domain can be cross-checked on the command line with <defaults domains>
-    QProcess::execute("defaults", {"write org.qgroundcontrol.qgroundcontrol NSAppSleepDisabled -bool YES"});
+    QProcess::execute("defaults", {"write", "org.qgroundcontrol.qgroundcontrol", "NSAppSleepDisabled", "-bool", "YES"});
 #endif
 
 #ifdef Q_OS_WIN
