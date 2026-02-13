@@ -2,12 +2,12 @@
 
 This repository contains QGroundControl along with Airmobis' `custom` directory for integration with [GeoWork](https://www.mobis1.com/geowork).
 
-Non-exhaustive list of changes:
+We've also implemented a few changes, here's a non-exhaustive list:
 
 | MAVLink                                                                 | Airmobis                                                 | Reaason                                                       |
 |-------------------------------------------------------------------------|----------------------------------------------------------|---------------------------------------------------------------|
 | Custom plugin has own CMakeLists.txt; included via `add_subdirectory()` | Custom plugin has config.cmake; included via `include()` | Tooling doesn't see QGC APIs otherwise                        |
-| macOS GStreamer found via dark magic                                    | macOS GStreamer found via pkg-config                     | Enables platform-independent way of installing GStreamer      |
+| GStreamer found via various platform-specific hacks                     | GStreamer found via pkg-config                           | Enables platform-independent way of finding GStreamer         |
 | Unmodified `PlanMasterController`                                       | Additional `uploadToGeoWork()` method                    | Enables usage of said method in Plan View                     |
 
 Below is the README of the original QGroundControl repository.
