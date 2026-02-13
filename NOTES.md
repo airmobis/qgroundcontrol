@@ -38,6 +38,7 @@ _This file serves to document my experience working with and modifying QGroundCo
 - I found this out via setting `GST_DEBUG=2` and running the compiled app
 - The error became apparent in `gst_qml6_get_gl_wrapcontext()`[^4], where a bunch of `#ifdef`-s checks the host platform
 - No platform was found, so the function compiled down to an error, no matter where it was ran
+- `GST_GL_HAVE_WINDOW_X11` was defined, but `HAVE_QT_X11` wasn't, thus X11 wasn't detected
 - **TL;DR:** If you compile without all necessary GStreamer libraries, camera functionality won't be compiled in
     - Install these dependencies via `tools/setup/install-dependencies-[your platform].sh`
 

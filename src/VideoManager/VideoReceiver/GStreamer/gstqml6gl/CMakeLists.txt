@@ -19,9 +19,15 @@ pkg_check_modules(GST_OPT IMPORTED_TARGET
     gstreamer-gl-x11-1.0
 )
 
+pkg_check_modules(GST_X11 IMPORTED_TARGET gstreamer-gl-x11-1.0)
+pkg_check_modules(GST_WAYLAND IMPORTED_TARGET gstreamer-gl-wayland-1.0)
+pkg_check_modules(GST_EGL IMPORTED_TARGET gstreamer-gl-egl-1.0)
+
 target_link_libraries(gstqml6gl PUBLIC
     PkgConfig::GST_REQ
-    $<TARGET_NAME_IF_EXISTS:PkgConfig::GST_OPT>
+    $<TARGET_NAME_IF_EXISTS:PkgConfig::GST_X11>
+    $<TARGET_NAME_IF_EXISTS:PkgConfig::GST_WAYLAND>
+    $<TARGET_NAME_IF_EXISTS:PkgConfig::GST_EGL>
 )
 
 # if(GST_PLUGIN_qml6_FOUND)
@@ -173,15 +179,18 @@ endif()
 
 ################################################################################
 
-if(GStreamer_GlX11_FOUND)
+if(GST_X11_FOUND)
+    message(STATUS "[GeoWork] Found X11")
     target_compile_definitions(gstqml6gl PRIVATE HAVE_QT_X11)
 endif()
 
-if(GStreamer_GlEgl_FOUND)
+if(GST_EGL_FOUND)
+    message(STATUS "[GeoWork] Found EGL")
     target_compile_definitions(gstqml6gl PRIVATE HAVE_QT_EGLFS)
 endif()
 
-if(GStreamer_GlWayland_FOUND)
+if(GST_WAYLAND_FOUND)
+    message(STATUS "[GeoWork] Found Wayland")
     find_package(Qt6 COMPONENTS WaylandClient)
     if(TARGET Qt6::WaylandClient)
         target_link_libraries(gstqml6gl PRIVATE Qt6::WaylandClient)
