@@ -10,6 +10,19 @@ We've also implemented a few changes, here's a non-exhaustive list:
 | GStreamer found via various platform-specific hacks                     | GStreamer found via pkg-config                           | Enables platform-independent way of finding GStreamer         |
 | Unmodified `PlanMasterController`                                       | Additional `uploadToGeoWork()` method                    | Enables usage of said method in Plan View                     |
 
+Installation requirements:
+- Qt 6
+    - Ideally 6.9.2, since this version works both on Linux and macOS
+    - Version 6.8.3 should work on Linux as well
+    - CMake might not find it, depending on its installation directory. In that case:
+        - Add it to `CMAKE_PREFIX_PATH` (to configure)
+        - Add it to `LD_LIBRARY_PATH` (to find the libraries upon launching the app)
+        - For example, if you installed Qt 6.9.2 under `/opt` on an x86-64 machine, set
+          `CMAKE_PREFIX_PATH=/opt/Qt/6.9.2/gcc_64` and `LD_LIBRARY_PATH=/opt/Qt/6.9.2/gcc_64/lib`
+- GStreamer
+    - Version 1.24 has been tested to work. 1.26 and 1.28 fail due to missing GLib symbols (at least on macOS), though you could probably hack your way through that
+    - Our fork of QGroundControl has been modified to find GStreamer via pkg-config, so it should work on both Linux and macOS
+
 Below is the README of the original QGroundControl repository.
 
 <p align="center">
