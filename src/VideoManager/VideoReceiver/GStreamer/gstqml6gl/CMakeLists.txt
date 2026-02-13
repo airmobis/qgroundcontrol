@@ -2,6 +2,23 @@ qt_add_library(gstqml6gl STATIC)
 
 find_package(PkgConfig)
 
+# Mandatory GStreamer components
+pkg_check_modules(GST_REQ REQUIRED IMPORTED_TARGET
+    gstreamer-1.0
+    gstreamer-base-1.0
+    gstreamer-video-1.0
+    gstreamer-gl-1.0
+    gstreamer-gl-prototypes-1.0
+    gstreamer-rtsp-1.0
+)
+
+# Optional ones
+pkg_check_modules(GST_OPT IMPORTED_TARGET
+    gstreamer-gl-egl-1.0
+    gstreamer-gl-wayland-1.0
+    gstreamer-gl-x11-1.0
+)
+
 target_link_libraries(gstqml6gl PUBLIC
     PkgConfig::GST_REQ
     $<TARGET_NAME_IF_EXISTS:PkgConfig::GST_OPT>
