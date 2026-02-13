@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <QtCore/qnamespace.h>
 #include <QtCore/QObject>
 #include <QtGui/QImage>
 #include <QtQuick/QQuickImageProvider>
@@ -21,7 +22,13 @@ public:
     ~QGCImageProvider();
 
     QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize) final;
-    void setImage(const QImage &image, uint8_t vehicleId = 0) { _images[vehicleId] = image.mirrored(); }
+    void setImage(const QImage &image, uint8_t vehicleId = 0) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+        _images[vehicleId] = image.flipped(Qt::Horizontal);
+#else
+        _images[vehicleId] = image.mirrored();
+#endif
+    }
 
 private:
     QMap<uint8_t, QImage> _images;
