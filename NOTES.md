@@ -39,8 +39,11 @@ _This file serves to document my experience working with and modifying QGroundCo
 - The error became apparent in `gst_qml6_get_gl_wrapcontext()`[^4], where a bunch of `#ifdef`-s checks the host platform
 - No platform was found, so the function compiled down to an error, no matter where it was ran
 - `GST_GL_HAVE_WINDOW_X11` was defined, but `HAVE_QT_X11` wasn't, thus X11 wasn't detected
-- **TL;DR:** If you compile without all necessary GStreamer libraries, camera functionality won't be compiled in
-    - Install these dependencies via `tools/setup/install-dependencies-[your platform].sh`
+- The root cause was a bunch of faulty CMake logic
+    - Basically "if {X11, Wayland, EGL}'s GStreamer component has been found, define its corresponding `HAVE_QT_{X11, WAYLAND, EGL}` macro"
+    - This broke upon migrating to pkg-config in order to find + link GStreamer, since the variables indicating a component has been found had different names
+    - In the end, it was an easy fix, but triaging this bug was quite the journey
+- This apparently only affected Linux (X11/Wayland/EGL); macOS worked just fine
 
 ## Porting the Herelink plugin
 - The `cameraId` parameter seems to have been changed from an integer type to a `QString`.
