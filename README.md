@@ -20,7 +20,9 @@ Installation requirements:
         - For example, if you installed Qt 6.9.2 under `/opt` on an x86-64 machine, set
           `CMAKE_PREFIX_PATH=/opt/Qt/6.9.2/gcc_64` and `LD_LIBRARY_PATH=/opt/Qt/6.9.2/gcc_64/lib`
 - GStreamer
-    - Version 1.24 has been tested to work. 1.26 and 1.28 fail due to missing GLib symbols (at least on macOS), though you could probably hack your way through that
+    - Version 1.24 has been tested to work
+        - 1.26 and 1.28 fail due to missing GLib symbols (at least on macOS), though you could probably hack your way through that
+        - Previous versions might work, not sure
     - Our fork of QGroundControl has been modified to find GStreamer via pkg-config, so it should work on both Linux and macOS
 
 Below is the README of the original QGroundControl repository.
