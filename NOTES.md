@@ -1,16 +1,19 @@
 # Developer notes (Petr)
 _This file serves to document my experience working with and modifying QGroundControl 5 on my MacBook Air M2, as well as to record potentially helpful information I gathered along the way._
 
-## Android build requirements
-- [Qt 6.8.3](https://my.qt.io/download)
+## Build requirements
+- [Qt](https://my.qt.io/download) 6.8.3
+    - 6.6.3 if compiling for Herelink
 - GStreamer 1.22.0-1.24.13
     - 1.26+ causes configure errors. An [issue](https://github.com/mavlink/qgroundcontrol/issues/13049) exists for this.
     - On macOS, prefer installing from the [official website](https://gstreamer.freedesktop.org/download/#macos) over Homebrew.
-- Android CLI Tools
+- *(Android only)* CLI Tools
     - Build Tools r35 (`build-tools;35.0.0`)
     - NDK 25.1 (`ndk;25.1.8937393`)
     - Platform Tools (`platform-tools`)
     - SDK Platform 34 (`platforms;android-34`)
+    - Bulk install via `sdkmanager "build-tools;35.0.0" "ndk;25.1.8937393" "platform-tools" "platforms;android-34"`
+        - Root access will probably be necessary
 
 ## Initial build
 - GStreamer didn't provide its own `FindGStreamer.cmake` on macOS before 1.26, so both QGroundControl and Qt6 have their own

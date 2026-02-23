@@ -25,6 +25,12 @@ Installation requirements:
         - Previous versions might work, not sure
     - Our fork of QGroundControl has been modified to find GStreamer via pkg-config, so it should work on both Linux and macOS
 
+Android requirements:
+- CLI tools
+    - `android-commandlinetools` on Homebrew, package name might be similar elsewhere
+    - `sdkmanager "build-tools;35.0.0" "ndk;25.1.8937393" "platform-tools" "platforms;android-34"`
+    - Don't forget to accept licenses via `yes | sdkmanager --licenses`
+
 Below is the README of the original QGroundControl repository.
 
 <p align="center">
