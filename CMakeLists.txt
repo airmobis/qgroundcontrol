@@ -63,11 +63,6 @@ include(GNUInstallDirs)
 include(FetchContent)
 include(CMakePrintHelpers)
 
-if(EXISTS "${QGC_CPM_SOURCE_CACHE}")
-    set(ENV{CPM_SOURCE_CACHE} "${QGC_CPM_SOURCE_CACHE}")
-else()
-    set(ENV{CPM_SOURCE_CACHE} "${CMAKE_BINARY_DIR}/cpm_modules")
-endif()
 include(CPM)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -160,8 +155,8 @@ endif()
 #               Qt6 Configuration
 #######################################################
 
-# The values specified below are the ONLY supported configurations for this version of QGC. 
-# Change these to something else at your own risk. Anything other than what is specified 
+# The values specified below are the ONLY supported configurations for this version of QGC.
+# Change these to something else at your own risk. Anything other than what is specified
 # here is unsupported so don't expect any help with problems.
 
 if(QGC_ENABLE_HERELINK AND ANDROID)
@@ -170,7 +165,7 @@ if(QGC_ENABLE_HERELINK AND ANDROID)
     set(QGC_QT_ANDROID_MIN_SDK_VERSION "25" CACHE STRING "Android Min SDK Version")
 else()
     set(QGC_QT_MINIMUM_VERSION "6.8.3" CACHE STRING "Minimum Supported Qt Version")
-    set(QGC_QT_MAXIMUM_VERSION "6.8.3" CACHE STRING "Maximum Supported Qt Version")
+    set(QGC_QT_MAXIMUM_VERSION "6.9.2" CACHE STRING "Maximum Supported Qt Version")
     set(QGC_QT_ANDROID_MIN_SDK_VERSION "28" CACHE STRING "Android Min SDK Version")
 endif()
 
@@ -183,7 +178,7 @@ find_package(Qt6
         Core
         Core5Compat
         Gui
-        LinguistTools
+        Linguist
         Location
         Multimedia
         Network
@@ -258,7 +253,7 @@ endif()
 #######################################################
 
 if(QGC_CUSTOM_BUILD)
-    add_subdirectory(custom)
+    include(custom/config.cmake)
 endif()
 
 #######################################################
@@ -561,7 +556,7 @@ qt_import_plugins(${CMAKE_PROJECT_NAME}
 )
 
 if(LINUX)
-    qt_import_plugins(${CMAKE_PROJECT_NAME} 
+    qt_import_plugins(${CMAKE_PROJECT_NAME}
         INCLUDE
             Qt6::QWaylandIntegrationPlugin
             Qt6::QXcbIntegrationPlugin
