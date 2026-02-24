@@ -97,7 +97,7 @@ android {
         targetSdkVersion qtTargetSdkVersion
         ndk.abiFilters = qtTargetAbiList.split(",")
 
-        namespace "org.cubepilot.qgroundcontrol_herelink"
+        namespace "com.airmobis.qgroundcontrol"
         // versionName "5.0"
         // versionCode timestampInt
 

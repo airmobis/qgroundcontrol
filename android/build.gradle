@@ -95,7 +95,7 @@ android {
         targetSdkVersion qtTargetSdkVersion
         ndk.abiFilters = qtTargetAbiList.split(",")
 
-        namespace "org.cubepilot.qgroundcontrol_herelink"
+        namespace "com.airmobis.qgroundcontrol"
         // println "applicationId: ${applicationId}"
         println "minSdkVersion: ${minSdkVersion}"
         println "targetSdkVersion: ${targetSdkVersion}"

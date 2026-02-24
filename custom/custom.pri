@@ -35,16 +35,16 @@ DEFINES += CUSTOMCLASS=HerelinkCorePlugin
 TARGET   = Herelink-QGroundControl
 DEFINES += QGC_APPLICATION_NAME='"\\\"Herelink QGroundControl\\\""'
 
-DEFINES += QGC_ORG_NAME=\"\\\"cubepilot.org\\\"\"
-DEFINES += QGC_ORG_DOMAIN=\"\\\"org.cubepilot\\\"\"
+DEFINES += QGC_ORG_NAME=\"\\\"airmobis.com\\\"\"
+DEFINES += QGC_ORG_DOMAIN=\"\\\"com.airmobis\\\"\"
 
-QGC_APP_NAME        = "Herelink QGroundControl"
-QGC_BINARY_NAME     = "Herelink-QGroundControl"
-QGC_ORG_NAME        = "Cubepilot"
-QGC_ORG_DOMAIN      = "org.cubepilot"
-QGC_ANDROID_PACKAGE = "org.cubepilot.herelink_qgroundcontrol"
-QGC_APP_DESCRIPTION = "Herelink QGroundControl"
-QGC_APP_COPYRIGHT   = "Copyright (C) 2024 Cubepilot. All rights reserved."
+QGC_APP_NAME        = "Airmobis QGroundControl"
+QGC_BINARY_NAME     = "Airmobis-QGroundControl"
+QGC_ORG_NAME        = "Airmobis"
+QGC_ORG_DOMAIN      = "com.airmobis"
+QGC_ANDROID_PACKAGE = "com.airmobis.qgroundcontrol"
+QGC_APP_DESCRIPTION = "Airmobis QGroundControl"
+QGC_APP_COPYRIGHT   = "Copyright (C) 2026 Airmobis. All rights reserved."
 
 # Remove code which the Herelink doesn't need
 DEFINES += \
