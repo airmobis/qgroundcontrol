@@ -11,12 +11,31 @@
 #include "FactValueGrid.h"
 
 #include <list>
+#include <QQmlApplicationEngine>
 
 QGC_LOGGING_CATEGORY(HerelinkCorePluginLog, "HerelinkCorePluginLog")
 
 HerelinkCorePlugin* HerelinkCorePlugin::instance()
 {
     return _herelinkCorePluginInstance();
+}
+
+void HerelinkCorePlugin::cleanup() {
+    if (m_qml != nullptr) {
+        m_qml->removeUrlInterceptor(m_url);
+    }
+
+    delete m_url;
+}
+
+QQmlApplicationEngine* HerelinkCorePlugin::createQmlApplicationEngine(QObject* parent) {
+    m_qml = QGCCorePlugin::createQmlApplicationEngine(parent);
+    m_qml->addImportPath("qrc:/Custom");
+
+    m_url = new UrlInterceptor {};
+    m_qml->addUrlInterceptor(m_url);
+
+    return m_qml;
 }
 
 HerelinkCorePlugin::HerelinkCorePlugin(QObject* parent)

@@ -1,10 +1,21 @@
 <RCC>
     <qresource prefix="custom/img">
+        <file alias="icon-active.svg">res/Images/icon-active.svg</file>
+        <file alias="icon-off.svg">res/Images/icon-off.svg</file>
     </qresource>
+
     <qresource prefix="/qmlimages">
     </qresource>
     <qresource prefix="Custom/Widgets">
     </qresource>
     <qresource prefix="/qml">
+    </qresource>
+
+    <qresource prefix="/Custom/qml">
+        <file alias="QGroundControl/FlightDisplay/FlyViewCustomLayer.qml">res/FlyViewCustomLayer.qml</file>
+    </qresource>
+
+    <qresource prefix="/Custom/GeoWork">
+        <file alias="GeoWorkSettingsPanel.qml">res/GeoWorkSettingsPanel.qml</file>
     </qresource>
 </RCC>

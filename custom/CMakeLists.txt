@@ -50,22 +50,16 @@ set(QML_IMPORT_PATH ${QML_IMPORT_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/res" CACHE S
 #set_source_files_properties(res/Custom/Widgets/CustomSignalStrength.qml PROPERTIES QT_RESOURCE_ALIAS CustomSignalStrength.qml)
 #set_source_files_properties(res/Custom/Widgets/CustomToolBarButton.qml PROPERTIES QT_RESOURCE_ALIAS CustomToolBarButton.qml)
 #set_source_files_properties(res/Custom/Widgets/CustomVehicleButton.qml PROPERTIES QT_RESOURCE_ALIAS CustomVehicleButton.qml)
-#
-#qt_add_qml_module(CustomModule
-#    URI Custom.Widgets
-#    VERSION 1.0
-#    RESOURCE_PREFIX /qml
-#    QML_FILES
-#        res/Custom/Widgets/CustomArtificialHorizon.qml
-#        res/Custom/Widgets/CustomAttitudeWidget.qml
-#        res/Custom/Widgets/CustomIconButton.qml
-#        res/Custom/Widgets/CustomOnOffSwitch.qml
-#        res/Custom/Widgets/CustomQuickButton.qml
-#        res/Custom/Widgets/CustomSignalStrength.qml
-#        res/Custom/Widgets/CustomToolBarButton.qml
-#        res/Custom/Widgets/CustomVehicleButton.qml
-#    NO_PLUGIN
-#)
+
+qt_add_qml_module(CustomModule
+    URI Custom
+    VERSION 1.0
+    RESOURCE_PREFIX /qml
+    QML_FILES
+        res/FlyViewCustomLayer.qml
+        res/GeoWorkSettingsPanel.qml
+    NO_PLUGIN
+)
 
 set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/HerelinkCorePlugin.cc
@@ -73,6 +67,11 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/HerelinkCorePlugin.json
     ${CMAKE_CURRENT_SOURCE_DIR}/src/HerelinkOptions.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/src/HerelinkOptions.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeoWork.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeoWork.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/GeoWork_qmlinit.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/UrlInterceptor.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/UrlInterceptor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/herelink/VideoStreamControl.cc
     ${CMAKE_CURRENT_SOURCE_DIR}/herelink/VideoStreamControl.h
     CACHE INTERNAL "" FORCE

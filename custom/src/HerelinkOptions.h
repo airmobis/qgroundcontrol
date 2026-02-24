@@ -1,6 +1,7 @@
 #pragma once
 
 #include "QGCOptions.h"
+#include "UrlInterceptor.h"
 
 class HerelinkCorePlugin;
 

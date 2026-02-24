@@ -29,12 +29,17 @@ public:
     bool        adjustSettingMetaData                  (const QString& settingsGroup, FactMetaData& metaData) override;
     void        factValueGridCreateDefaultSettings     (FactValueGrid* factValueGrid) override;
 
+    void cleanup() final;
+    QQmlApplicationEngine* createQmlApplicationEngine(QObject* parent) final;
 
 private slots:
     void _activeVehicleChanged(Vehicle* activeVehicle);
 
 private:
     HerelinkOptions* _herelinkOptions = nullptr;
+
+    QQmlApplicationEngine* m_qml;
+    UrlInterceptor*        m_url;
 };
 
 Q_APPLICATION_STATIC(HerelinkCorePlugin, _herelinkCorePluginInstance);
