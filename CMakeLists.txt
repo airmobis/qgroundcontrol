@@ -63,11 +63,6 @@ include(GNUInstallDirs)
 include(FetchContent)
 include(CMakePrintHelpers)
 
-if(EXISTS "${QGC_CPM_SOURCE_CACHE}")
-    set(ENV{CPM_SOURCE_CACHE} "${QGC_CPM_SOURCE_CACHE}")
-else()
-    set(ENV{CPM_SOURCE_CACHE} "${CMAKE_BINARY_DIR}/cpm_modules")
-endif()
 include(CPM)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -567,7 +562,7 @@ qt_import_plugins(${CMAKE_PROJECT_NAME}
 )
 
 if(LINUX)
-    qt_import_plugins(${CMAKE_PROJECT_NAME} 
+    qt_import_plugins(${CMAKE_PROJECT_NAME}
         INCLUDE
             Qt6::QWaylandIntegrationPlugin
             Qt6::QXcbIntegrationPlugin
