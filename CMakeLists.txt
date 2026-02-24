@@ -259,7 +259,7 @@ endif()
 #######################################################
 
 if(QGC_CUSTOM_BUILD)
-    add_subdirectory(custom)
+    include(custom/config.cmake)
 endif()
 
 #######################################################
