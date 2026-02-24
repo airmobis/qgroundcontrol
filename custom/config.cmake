@@ -56,20 +56,21 @@ set(CUSTOM_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/src/HerelinkCorePlugin.json
     ${CMAKE_CURRENT_LIST_DIR}/src/HerelinkOptions.cc
     ${CMAKE_CURRENT_LIST_DIR}/src/HerelinkOptions.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork.cc
-    ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/GeoWork_qmlinit.cc
-    ${CMAKE_CURRENT_LIST_DIR}/src/UrlInterceptor.cc
-    ${CMAKE_CURRENT_LIST_DIR}/src/UrlInterceptor.h
     ${CMAKE_CURRENT_LIST_DIR}/herelink/VideoStreamControl.cc
     ${CMAKE_CURRENT_LIST_DIR}/herelink/VideoStreamControl.h
+    ${CMAKE_CURRENT_LIST_DIR}/geowork/include/UrlInterceptor.h
+    ${CMAKE_CURRENT_LIST_DIR}/geowork/src/UrlInterceptor.cc
+    ${CMAKE_CURRENT_LIST_DIR}/geowork/include/GeoWork.h
+    ${CMAKE_CURRENT_LIST_DIR}/geowork/src/GeoWork.cc
+    ${CMAKE_CURRENT_LIST_DIR}/geowork/src/GeoWork_qmlinit.cc
     CACHE INTERNAL "" FORCE
 )
 
 set(CUSTOM_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_LIST_DIR}/src
-    ${CMAKE_CURRENT_LIST_DIR}/src/AutoPilotPlugin
-    ${CMAKE_CURRENT_LIST_DIR}/src/FirmwarePlugin
+    # ${CMAKE_CURRENT_LIST_DIR}/src/AutoPilotPlugin
+    # ${CMAKE_CURRENT_LIST_DIR}/src/FirmwarePlugin
     ${CMAKE_CURRENT_LIST_DIR}/herelink
+    ${CMAKE_CURRENT_LIST_DIR}/geowork/include
     CACHE INTERNAL "" FORCE
 )

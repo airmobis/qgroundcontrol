@@ -678,8 +678,7 @@ void GeoWork::reportLocation() {
     // ground speed (m/s)
     if (std::isfinite(groundSpeed)) {
         meta.append(
-            QJsonObject { { "key", "ground_speed" }, { "value", QString::number(groundSpeed, 'f', 2) }, { "unit", "m/s" } }
-        );
+            QJsonObject { { "key", "ground_speed" }, { "value", QString::number(groundSpeed, 'f', 2) }, { "unit", "m/s" } });
     }
 
     // heading (deg)
@@ -706,13 +705,13 @@ void GeoWork::reportLocation() {
         // per-pack battery values (up to 3)
         for (int i = 0; i < batVoltages.size() && i < 3; ++i) {
             meta.append(QJsonObject { { "key", QString("bat%1_voltage").arg(i + 1) },
-                                      { "value", QString::number(batVoltages[i]) },
-                                      { "unit", "V" } });
+                { "value", QString::number(batVoltages[i]) },
+                { "unit", "V" } });
         }
         for (int i = 0; i < batCurrents.size() && i < 3; ++i) {
             meta.append(QJsonObject { { "key", QString("bat%1_current").arg(i + 1) },
-                                      { "value", QString::number(batCurrents[i]) },
-                                      { "unit", "A" } });
+                { "value", QString::number(batCurrents[i]) },
+                { "unit", "A" } });
         }
         for (int i = 0; i < batMah.size() && i < 3; ++i) {
             meta.append(QJsonObject {
@@ -985,8 +984,7 @@ void GeoWork::uploadPhotoToMarker(const QString& markerId, const QString& photoP
     filePart.setHeader(
         QNetworkRequest::ContentDispositionHeader,
         QVariant(QStringLiteral("form-data; name=\"file\"; filename=\"%1\"")
-                     .arg(fi.fileName()))
-    );
+                .arg(fi.fileName())));
 
     filePart.setHeader(QNetworkRequest::ContentTypeHeader, QVariant(QStringLiteral("image/jpeg")));
     filePart.setBodyDevice(&file);

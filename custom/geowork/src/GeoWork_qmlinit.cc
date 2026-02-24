@@ -12,8 +12,7 @@ static void initGeoWorkQml() {
             // Qt manually deletes these things.
             static GeoWork* instance { new GeoWork {} };
             return instance;
-        }
-    );
+        });
 }
 
 Q_COREAPP_STARTUP_FUNCTION(initGeoWorkQml)
